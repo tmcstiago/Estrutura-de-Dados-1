@@ -2,21 +2,21 @@
 #include <stdlib.h>
 #define MAX 10
 
-int *recebe_notas (int *, int*, int);
+int *recebe_notas (float *, int*, int);
 int *conta_notas (int *, int* ,int);
-int *percentual_notas (int *, float* ,int);
+int percentual_notas (int *, float* ,int);
 
 int main () {
 
 	int opcao, *p;
-	int NOTAS[MAX];
+	float NOTAS[MAX];
 	int APR[MAX], qnt_apr_rep[2];
 	float perc_apr_rep[2];
 
 	printf("Insira a nota dos %d alunos:\n", MAX);
 
 	for (int i=0; i<MAX; i++){
-		scanf ("%d", &NOTAS[i]);
+		scanf ("%f", &NOTAS[i]);
 	}
 
 	//chama as funçoes para calcular os valores e evitar erros para o usuario
@@ -63,7 +63,7 @@ int main () {
 }
 
 //função recebe a referencia do vetor de notas, a referencia do vetor que os valores serao quardados e a qnt maxima de alunos
-int *recebe_notas(int *notas, int *apr, int x) {
+int *recebe_notas(float *notas, int *apr, int x) {
 	for (int i=0; i<x; i++){
 		if (*(notas+i)>=6)
 			*(apr+i) = 1;
@@ -88,7 +88,7 @@ int *conta_notas (int *apr, int*qnt ,int x){
 }
 
 //função recebe a referencia do vetor qnt_aprovados, a referencia do vetor que os valores serao quardados e a qnt maxima de alunos
-int *percentual_notas (int *qnt, float*perc ,int x){
+int percentual_notas (int *qnt, float*perc ,int x){
 
 	float aprovados = *qnt;
 	*perc = aprovados*100/(float)x;
