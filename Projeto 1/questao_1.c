@@ -3,10 +3,11 @@
 
 #define MAX 10
 
-int fneuronio(float *entradas, float *pesos, float t, int n);
+void fneuronio(float *entradas, float *pesos, float t, int n, int *resultado);
 
 int main(int argc, char const *argv[]) {
     float entradas[MAX], pesos[MAX], t;
+	int resultado;
 
     printf("Entre com 10 valores para as entradas: ");
     for(int i = 0; i < MAX; i++) {
@@ -21,24 +22,20 @@ int main(int argc, char const *argv[]) {
     printf("Entre com o valor da limiar: ");
     scanf("%f", &t);
 
-    int checa_neuronio = fneuronio(entradas, pesos, t, MAX);
+    fneuronio(entradas, pesos, t, MAX, &resultado);
 
-    if(checa_neuronio == 1) printf("Neurônio Ativado!");
-    else if(checa_neuronio == 0) printf("Neurônio Inibido!");
+    if(resultado == 1) printf("Neurônio Ativado!");
+    else if(resultado == 0) printf("Neurônio Inibido!");
     else printf("Erro na execução! :/");
 
     return 0;
 }
 
-int fneuronio(float *entradas, float *pesos, float t, int n) {
+void fneuronio(float *entradas, float *pesos, float t, int n, int *resultado) {
     float SOMAP = 0;
-    int resultado = 0;
-    int *result = &resultado;
     for(int i = 0; i < n; i++) {
         SOMAP += *(entradas + i) * *(pesos + i);
     }
-    if(SOMAP > t) *result = 1;
-    else *result = 0;
-
-    return resultado;
+    if(SOMAP > t) *resultado = 1;
+    else *resultado = 0;
 }
