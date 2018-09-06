@@ -1,7 +1,7 @@
 #include <stdio.h>
-#define MAX 10
+#define MAX 2
 
-int fneuronio(double* , double* , double,  int);
+void fneuronio(double* , double* , double,  int, int* );
 
 int main()
 {
@@ -28,7 +28,7 @@ int main()
 	
 	return 0;
 	*/
-	resultado=fneuronio(ENTRADA, PESOS, T, MAX);
+	fneuronio(ENTRADA, PESOS, T, MAX, &resultado);
 	if(resultado==0)
 		printf("Neurôno inibido!\n");
 	else 
@@ -37,16 +37,16 @@ int main()
 	
 }
 
-int fneuronio(double* ENTRADA, double* PESOS, double T,  int tamanho)
+void fneuronio(double *ENTRADA, double *PESOS, double T,  int tamanho, int *resultado)
 {
-	double resultado=0;
+	double SOMAP=0;
 	for(int i=0; i<tamanho; i++)
 	{
-		resultado+=(*(ENTRADA+i))*(*(PESOS+i));
+		SOMAP+=(*(ENTRADA+i))*(*(PESOS+i));
 	}
-	if(resultado>T)
-		return 1;
+	if(SOMAP>T)
+		*resultado=1;
 	else 
-		return 0;
+		*resultado=0;
 		
 }
