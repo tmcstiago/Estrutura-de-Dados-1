@@ -1,52 +1,44 @@
 #include <stdio.h>
-#define MAX 2
+#include <stdlib.h>
 
-void fneuronio(double* , double* , double,  int, int* );
+#define MAX 10
 
-int main()
-{
-	double ENTRADA[MAX];
-	double PESOS[MAX];
-	double T;
-	int resultado;
-	
-	printf("Insira os %d valores do vetor ENTRADA:\n", MAX);
-	for(int i=0; i<MAX; i++)
-		scanf("%lf", &ENTRADA[i]);
-	
-	printf("Insira os %d valores do vetor PESOS:\n", MAX);
-	for(int i=0; i<MAX; i++)
-		scanf("%lf", &PESOS[i]);
-		
-	printf("Insira o limiar T:\n");
-	scanf("%lf", &T);
-	
-	/*
-	for(int i=0; i<MAX; i++)
-		printf("ENTRADA[%d]: %lf \t PESOS[%d]: %lf\n", i, ENTRADA[i], i, PESOS[i]);
-	printf("T: %lf\n", T);
-	
-	return 0;
-	*/
-	fneuronio(ENTRADA, PESOS, T, MAX, &resultado);
-	if(resultado==0)
-		printf("Neurôno inibido!\n");
-	else 
-		printf("Neurônio ativado!\n");
-	
-	
+int fneuronio(float *entradas, float *pesos, float t, int n);
+
+int main(int argc, char const *argv[]) {
+    float entradas[MAX], pesos[MAX], t;
+
+    printf("Entre com 10 valores para as entradas: ");
+    for(int i = 0; i < MAX; i++) {
+        scanf("%f", &entradas[i]);
+    }
+    
+    printf("Entre com 10 valores para os pesos: ");
+    for(int i = 0; i < MAX; i++) {
+        scanf("%f", &pesos[i]);
+    }
+
+    printf("Entre com o valor da limiar: ");
+    scanf("%f", &t);
+
+    int checa_neuronio = fneuronio(entradas, pesos, t, MAX);
+
+    if(checa_neuronio == 1) printf("Neurônio Ativado!");
+    else if(checa_neuronio == 0) printf("Neurônio Inibido!");
+    else printf("Erro na execução! :/");
+
+    return 0;
 }
 
-void fneuronio(double *ENTRADA, double *PESOS, double T,  int tamanho, int *resultado)
-{
-	double SOMAP=0;
-	for(int i=0; i<tamanho; i++)
-	{
-		SOMAP+=(*(ENTRADA+i))*(*(PESOS+i));
-	}
-	if(SOMAP>T)
-		*resultado=1;
-	else 
-		*resultado=0;
-		
+int fneuronio(float *entradas, float *pesos, float t, int n) {
+    float SOMAP = 0;
+    int resultado = 0;
+    int *result = &resultado;
+    for(int i = 0; i < n; i++) {
+        SOMAP += *(entradas + i) * *(pesos + i);
+    }
+    if(SOMAP > t) *result = 1;
+    else *result = 0;
+
+    return resultado;
 }
