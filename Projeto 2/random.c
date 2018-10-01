@@ -4,6 +4,7 @@
 #include <string.h>
 
 void get_random_file( char * file_path);
+int ilbp (int *)
 //Função gera 25 nomes de arquivo aleatório entre os apresentados
 int main()
 {
@@ -48,13 +49,65 @@ int main()
 
 
 
+	int **grama;
+
+	// estrutura para percorrer as 25 imagens de grama
+	for (int a=1; a<=25; a++){
+
+		/*
+		código para pegar a imagem da grama aqui
+		*/
+
+		//alterando o tamanho da matriz que guarda os vetores
+		if (a=1){
+			grama = (int**) malloc(a*sizeof(int *));
+		}
+		else {
+			grama = (int **) realloc(grama, a*sizeof(int *))
+		}
+
+		if (a==NULL){
+			printf("A alocação falhou\n");
+			exit(1);
+		}
+
+		// estrutura para calcular o resultado das matrizes 3x3
+		for (int i=1; i<1024; i++){
+			for (int j=1; j=1024; j++){
+				int matriz[3][3], media = 0; // matriz a ser enviada pra função
+				int *p = matriz;
+
+				//passando os valores para a matriz
+				for (int m=0; m<3; m++){
+					for (int n=0; n<3; n++){
+						matriz[m][n] = imagem[i-1+m][i-1+n];
+						media += matriz[m][n];
+					}
+				}
+
+
+			}
+		}
+	}
+
+
+
+
 	//Liberação da memória contendo arquivos de imagens
 	for(int i=0; i<25; i++){
 		free(imagens[i]);
 	}
+
+	//liberando a memoria dos valores de grama
+	for (i=0; i<a; i++) {
+		free (* (grama + 1));
+	}
+	free (grama);
+
 	return 0;
 
 }
+
 void get_random_file(char * file_path){
 	
 	
@@ -75,3 +128,20 @@ void get_random_file(char * file_path){
 }
 
 
+int ilbp (int *matriz){
+	int media = 0;
+	int binario[3][3];
+
+	//pegando os valores do vetor para calcular a media
+	for (int i=0; i<3; i++){
+		for (int j=0; j<3; j++){
+			if (*(matriz + (i*3) + j)){
+				
+			}
+		}
+	}
+
+	media = media/9;
+
+
+}
