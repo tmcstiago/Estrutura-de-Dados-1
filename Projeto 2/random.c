@@ -61,6 +61,7 @@ int main()
 		matriz[0] = (int *) malloc (sizeof(int));
 		if (matriz == NULL || matriz[0] == NULL){
 			printf("Realocacao falhou. Finalizado.\n");
+
 			exit(1);
 		}
 		int i=0, j=0;
