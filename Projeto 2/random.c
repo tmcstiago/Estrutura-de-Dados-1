@@ -67,9 +67,9 @@ int main()
 
 
 
-	int **grama;
+	int **treinamento;
 
-	// estrutura para percorrer as 25 imagens de grama
+	// estrutura para percorrer as 50 imagens de teste
 	for (int a=1; a<=25; a++){
 
 		/*
@@ -78,18 +78,18 @@ int main()
 
 		//alterando o tamanho da matriz que guarda os vetores
 		if (a=1){
-			grama = (int**) malloc(a*sizeof(int *));
+			treinamento = (int**) malloc(a*sizeof(int *));
 		}
 		else {
-			grama = (int **) realloc(grama, a*sizeof(int *))
+			treinamento = (int **) realloc(treinamento, a*sizeof(int *))
 		}
-		if (grama==NULL){
+		if (treinamento==NULL){
 			printf("A alocação falhou\n");
 			exit(1);
 		}
 
-		*(grama+(a-1)) = (int *) calloc(512, sizeof(int));
-		if (*(grama + (a-1))==NULL){
+		*(treinamento+(a-1)) = (int *) calloc(512, sizeof(int));
+		if (*(treinamento + (a-1))==NULL){
 			printf("A alocação falhou\n");
 			exit(1);
 		}
@@ -111,7 +111,7 @@ int main()
 				int menor = ilbp(matriz, media);
 
 				//incrementando o valor obtido no resultado
-				*(*(grama+(a-1))+(grama-1)) = *(*(grama+(a-1))+(grama-1)) + 1;
+				*(*(treinamento+(a-1))+(treinamento-1)) = *(*(treinamento+(a-1))+(treinamento-1)) + 1;
 			}
 		}
 	}
