@@ -9,7 +9,7 @@
 
 
 void get_random_file( char * file_path, char * img_type);
-int ilbp (int *matriz, int media);
+int ilbp (int *imagem, int media);
 
 int main()
 {
@@ -39,8 +39,8 @@ int main()
 		
 	//Leitura dos arquivos	
 	for(int i=0; i<N_IMAGENS*2; i++){
-		int n_linhas, n_colunas;
-		int **matriz;
+		int nlin, ncol;
+		int **imagem;
 		FILE *arquivo;
 		char path[50];
 		if(i%2==0){
@@ -57,43 +57,45 @@ int main()
 			printf("Problema na Leitura dos arquivos\n");
 			exit(1);
 		}
-		matriz = (int **) malloc (sizeof(int *));
-		matriz[0] = (int *) malloc (sizeof(int));
-		if (matriz == NULL || matriz[0] == NULL){
+		imagem = (int **) malloc (sizeof(int *));
+		imagem[0] = (int *) malloc (sizeof(int));
+		if (imagem == NULL || imagem[0] == NULL){
 			printf("Realocacao falhou. Finalizado.\n");
 
 			exit(1);
 		}
 		int i=0, j=0;
 		char aux;
-		while(fscanf(arquivo, "%d%c", &matriz[i][j], &aux)!=EOF){
-			matriz[i] = (int *) realloc(matriz[i], (j+2)*sizeof(int));
-			if (matriz[i] == NULL){
+		while(fscanf(arquivo, "%d%c", &imagem[i][j], &aux)!=EOF){
+			imagem[i] = (int *) realloc(imagem[i], (j+2)*sizeof(int));
+			if (imagem[i] == NULL){
 				printf("Realocacao falhou. Finalizado.\n");
 				exit(1);
 			}
 			if(aux=='\n'){
-				//printf("matriz[%d][%d]= %d\n", i, j, matriz[i][j]);
-				matriz = (int **) realloc(matriz, (i+2)*sizeof(int *));
-				matriz[i+1] = (int *) malloc(sizeof(int));
-				if (matriz == NULL || matriz[i+1] == NULL){
+				//printf("imagem[%d][%d]= %d\n", i, j, imagem[i][j]);
+				imagem = (int **) realloc(imagem, (i+2)*sizeof(int *));
+				imagem[i+1] = (int *) malloc(sizeof(int));
+				if (imagem == NULL || imagem[i+1] == NULL){
 					printf("Realocacao falhou. Finalizado.\n");
 					exit(1);
 				}
-				n_colunas=j+1;	
+				ncol=j+1;	
 				i++;
 				j=-1;
 			}
 			j++;	
 		}
-		n_linhas=i;
+		nlin=i;
 		fclose(arquivo);
-		//printf("n_linhas= %d, n_colunas= %d\n", n_linhas, n_colunas);
+
+
+		printf("nlin= %d, ncol= %d\n", nlin, ncol);
 		
 
-		for(int i=0; i<n_colunas; i++)
-			free(matriz[i]);
-		free(matriz);
+		for(int i=0; i<ncol; i++)
+			free(imagem[i]);
+		free(imagem);
 	}
 	return 0;
 
