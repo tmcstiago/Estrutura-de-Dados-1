@@ -23,9 +23,11 @@ int main()
 	srand(time(0));	// Usado para rand() gerar número aleátorio cada vez que rodado
 
 	//Geração aleatória dos 25 nomes de arquivos aleatórios e distintos
-	char asphalt_path[N_IMAGENS][50];
-	char grass_path[N_IMAGENS][50];
-	for(int i=0; i<N_IMAGENS; i++){
+	//Arquivos de índice 0 até 24 serão usados no treinamento 
+	//Arquivos do índice 25 até 49 serão usados na outra parte do código
+	char asphalt_path[N_IMAGENS*2][50];
+	char grass_path[N_IMAGENS*2][50];
+	for(int i=0; i<N_IMAGENS*2; i++){
 		get_random_file(asphalt_path[i], "asphalt");
 		for(int j=0; j<i; j++){
 			if(!strcmp(asphalt_path[i], asphalt_path[j])){
@@ -95,6 +97,7 @@ int main()
 		}
 		nlin=i;
 		fclose(arquivo);
+		printf("Calculado...\n");
 
 		if (a==0){
 			treinamento = (int**) malloc(1*sizeof(int *));
@@ -117,13 +120,13 @@ int main()
 
 		ilbp_glcm (treinamento, imagem, nlin, ncol, a); //calculando as metricas da imagem
 
-		for (int i=0; i<=a; i++){
-			for (int j=0; j<536; j++){
-				printf("%d ", *(*(treinamento+i)+j));
-			}
-		}
-		int x;
-		scanf ("%d", &x);
+		//for (int i=0; i<=a; i++){
+		//	for (int j=0; j<536; j++){
+		//		printf("%d ", *(*(treinamento+i)+j));
+		//	}
+		//	printf("\n");
+		//}
+		//getchar();
 
 		for(int i=0; i<ncol; i++)
 		free(imagem[i]);
