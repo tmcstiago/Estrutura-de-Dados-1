@@ -14,6 +14,7 @@
 void ilbp_glcm (int **treinamento, int **imagem,int nlin, int ncol, int a);
 void get_random_file( char * file_path, char * img_type);
 int ilbp (int *matriz, float media);
+void normaliza_dados(float *vetor, float *vetor_normalizado);
 
 int main()
 {
@@ -42,8 +43,6 @@ int main()
 				j=-1;
 			}	
 		}
-		//printf("%s\n", asphalt_path[i]);
-		//printf("%s\n", grass_path[i]);
 	}
 		
 	//Leitura dos arquivos	
@@ -133,6 +132,12 @@ int main()
 		free(imagem);
 	}
 
+	float **treinamento_normalizado;
+
+	int i=0;
+	for(i = 0; i < 50; i++) {
+		normaliza_dados(*(treinamento+i), *(treinamento_normalizado + i));
+	}
 
 	//liberando a memoria dos valores de grama
 	for (int i=0; i<50; i++) {
@@ -142,11 +147,6 @@ int main()
 
 	return 0;
 }
-
-
-
-
-
 
 void get_random_file(char * file_path, char * img_type){
 		
@@ -784,10 +784,6 @@ void ilbp_glcm (int **treinamento, int **imagem,int nlin, int ncol, int a) {
 	free (glcm);
 }
 
-
-
-
-
 int ilbp (int *matriz, float media){
 	int binario[3][3];
 	int menor = 512;
@@ -849,3 +845,47 @@ int ilbp (int *matriz, float media){
 
 	return menor;
 }
+
+void normaliza_dados(float *vetor, float *vetor_normalizado) {
+
+  int i;
+  float menor = 0, maior = 9999999;
+
+  // Define os valores menor e maior dentro do vetor
+  for (i = 0; i < 536; i++) {
+    if (*(vetor + i) > maior) {
+      maior = *(vetor + i);
+    }
+    if (menor > *(vetor + i)) {
+      menor = *(vetor + i);
+    }
+  }
+
+  // Vetor normalizado usando o cálculo definido no projeto
+  for (i = 0; i < 536; i++) {
+    *(vetor_normalizado + i) = (*(vetor_normalizado + i) - menor) / (maior - menor);
+  }
+}
+
+
+/**
+ * 
+ * 
+ */
+// float distancia_euclidiana(float *referencia, float **comparador, int contador) {
+
+//   // Declaração de variáveis locais.
+//   int i, j;
+//   float resultado = 0.0, elemento_vetor_referencia, elemento_vetor_comparador, diferenca;
+
+//   // faz a distância euclidiana entre os vetores.
+//   for (j = 0; j < 536; j++) {
+//     elemento_vetor_referencia = *(referencia + j);
+//     elemento_vetor_comparador = *(*(comparador+posicao)+j);
+//     diferenca = elemento_vetor_referencia - elemento_vetor_comparador;
+//     resultado += pow(diferenca, 2);
+//   }
+//   resultado = sqrt(resultado);
+
+//   return resultado;
+// }
