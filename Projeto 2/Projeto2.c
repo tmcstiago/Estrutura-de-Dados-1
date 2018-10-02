@@ -14,6 +14,8 @@
 void ilbp_glcm (int **treinamento, int **imagem,int nlin, int ncol, int a);
 void get_random_file( char * file_path, char * img_type);
 int ilbp (int *matriz, float media);
+void bubbleSort(int *vetor, int tamanho);
+float distancia_euclidiana(float *treinamento, float *teste, int tamanho);
 
 int main()
 {
@@ -119,34 +121,214 @@ int main()
 
 
 		ilbp_glcm (treinamento, imagem, nlin, ncol, a); //calculando as metricas da imagem
+		
 
-		//for (int i=0; i<=a; i++){
-		//	for (int j=0; j<536; j++){
-		//		printf("%d ", *(*(treinamento+i)+j));
-		//	}
-		//	printf("\n");
+		
+		bubbleSort(treinamento[a] , 536);
+
+		//for (int j=0; j<536; j++){
+		//	printf("%d ", *(*(treinamento+a)+j));
 		//}
-		//getchar();
+		//printf("\n");
 
+		// Normalização do vetor
+		double normalize[536];
+		for (int j=0; j<536; j++){
+			normalize[j]= (double)(treinamento[a][j]-treinamento[a][0])/(treinamento[a][535]-treinamento[a][0]);
+		}
+		for (int j=0; j<536; j++){
+			//printf("%lf ", normalize[j]);
+		}
+	
+		//Liberação da memória alocada para imagem[]
 		for(int i=0; i<ncol; i++)
-		free(imagem[i]);
+			free(imagem[i]);
 		free(imagem);
 	}
+	float *grama, *asfalto;
+	
+	grama=(float *)calloc(536, sizeof(float));
+	asfalto=(float *)calloc(536, sizeof(float));
 
+	if (grama == NULL || asfalto == NULL){
+		printf("Alocação falhou, Finalizado.\n");
+		exit(1);
+	}
+	for(int i=0; i<50; i++){
+		for(int j=0; j<536; j++){
+			if(i%2==0){
+				grama[j]+=treinamento[i][j];			
+			}
+			else{
+				asfalto[j]+=treinamento[i][j];
+			}	
+		}
+	}
+	for(int i=0; i<536; i++){
+		grama[i]/=25;
+		asfalto[i]/=25;
+	}
+	double grama_normalize[536];
+	double asfalto_normalize[536];
+	bubbleSort(grama , 536);
+	bubbleSort(asfalto , 536);
+	for (int j=0; j<536; j++){
+		grama_normalize[j]= (double)(grama[j]-grama[0])/(grama[535]-grama[0]);
+		asfalto_normalize[j]= (double)(asfalto[j]-asfalto[0])/(asfalto[535]-asfalto[0]);
+	}
+	int erro_grama=0; int acerto_grama=0;
+	int erro_asfalto=0; int acerto_asfalto=0;
+	int **teste;
 
+	for(int a=0; a<50; a++){
+		int nlin, ncol;
+		int **imagem;
+		FILE *arquivo;
+		char path[50];
+		if(a%2==0){
+			strcpy(path, grass_path[a/2+25]);
+		}
+		else{
+			strcpy(path, asphalt_path[a/2+25]);
+		}
+		arquivo = fopen(path, "r");
+
+		printf("Lendo.. %s\n", path);
+
+		if (arquivo == NULL){
+			printf("Problema na Leitura dos arquivos\n");
+			exit(1);
+		}
+		imagem = (int **) malloc (sizeof(int *));
+		imagem[0] = (int *) malloc (sizeof(int));
+		if (imagem == NULL || imagem[0] == NULL){
+			printf("Realocacao falhou. Finalizado.\n");
+
+			exit(1);
+		}
+		int i=0, j=0;
+		char aux;
+		while(fscanf(arquivo, "%d%c", &imagem[i][j], &aux)!=EOF){
+			imagem[i] = (int *) realloc(imagem[i], (j+2)*sizeof(int));
+			if (imagem[i] == NULL){
+				printf("Realocacao falhou. Finalizado.\n");
+				exit(1);
+			}
+			if(aux=='\n'){
+				//printf("imagem[%d][%d]= %d\n", i, j, imagem[i][j]);
+				imagem = (int **) realloc(imagem, (i+2)*sizeof(int *));
+				imagem[i+1] = (int *) malloc(sizeof(int));
+				if (imagem == NULL || imagem[i+1] == NULL){
+					printf("Realocacao falhou. Finalizado.\n");
+					exit(1);
+				}
+				ncol=j+1;	
+				i++;
+				j=-1;
+			}
+			j++;	
+		}
+		nlin=i;
+		fclose(arquivo);
+		printf("Calculado...\n");
+
+		
+		if (a==0){
+			teste = (int**) malloc(1*sizeof(int *));
+		}
+		else {
+			teste = (int **) realloc(teste, (a+1)*sizeof(int *));
+		}
+		if (teste==NULL){
+			printf("A alocação falhou\n");
+			exit(1);
+		}
+
+		//espaço para armazenar o vetor ilbp
+		*(teste+a) = (int *) calloc(512, sizeof(int));
+		if (*(teste + (a-1))==NULL){
+			printf("A alocação falhou\n");
+			exit(1);
+		}
+
+		ilbp_glcm (teste, imagem, nlin, ncol, a); //calculando as metricas da imagem
+		
+		float normalize[536];
+		bubbleSort (teste[a] , 536);
+		for (int j=0; j<536; j++){
+			normalize[j]= (double)(teste[a][j]-teste[a][0])/(teste[a][535]-teste[a][0]);
+		}
+		float d_euclidiana_grama, d_euclidiana_asfalto;
+
+		d_euclidiana_grama=distancia_euclidiana(grama_normalize, normalize, 536);		
+		d_euclidiana_asfalto=distancia_euclidiana(asfalto_normalize, normalize, 536);
+		//Grama
+		if(a%2==0){
+			if(d_euclidiana_grama<d_euclidiana_asfalto)
+				acerto_grama++;
+			else
+				erro_grama++;
+		}
+		//Asfalto
+		else{
+			if(d_euclidiana_grama>d_euclidiana_asfalto)
+				acerto_asfalto++;
+			else
+				erro_asfalto++;
+
+		}
+		for(int i=0; i<ncol; i++)
+			free(imagem[i]);
+		free(imagem);
+	}
+	
+	float acerto = (float)(acerto_grama+acerto_asfalto)/(erro_grama+erro_asfalto+acerto_grama+acerto_asfalto);
+	float falsa_aceitacao = (float)acerto_asfalto/(acerto_asfalto+erro_asfalto);
+	float falsa_rejeicao = (float)acerto_asfalto/(acerto_asfalto+erro_asfalto);
+	printf ("Taxa de acerto = %.2f %\n", acerto*100);
+	printf ("Taxa de falsa aceitacao = %.2f %\n", falsa_aceitacao*100);
+	printf ("Taxa de falsa rejeicao = %.2f %\n", falsa_rejeicao*100);
+	
 	//liberando a memoria dos valores de grama
 	for (int i=0; i<50; i++) {
 		free (* (treinamento + i));
 	}
 	free (treinamento);
 
+
+	free(grama);
+	free(asfalto);
+
+	for (int i=0; i<50; i++) {
+		free (* (teste + i));
+	}
+	free (teste);
+
 	return 0;
 }
+float distancia_euclidiana(float *treinamento, float *teste, int tamanho){
+	float distancia=0;
+	for(int i=0; i<tamanho; i++){
+		float x = 0;
+		x = treinamento[i]-teste[i];
+		distancia+= pow(x,2);
+	}
+	distancia = sqrt(distancia);
+	return distancia;
 
-
-
-
-
+}
+void bubbleSort(int *vetor, int n){
+	int k, j, aux;
+    for (k = 1; k < n; k++) {
+        for (j = 0; j < n - 1; j++) {
+            if (vetor[j] > vetor[j + 1]) {
+                aux = vetor[j];
+                vetor[j] = vetor[j + 1];
+                vetor[j + 1] = aux;
+            }
+        }
+    }
+}
 
 void get_random_file(char * file_path, char * img_type){
 		
