@@ -8,6 +8,10 @@
 
 
 
+//função para calcular as metricas da imagem
+//parametros ==> matriz para armazenar o vetor da imagem, matriz da imagem, qnt de linhas,
+//				 qnt de colunas, linha da matriz para armazenar o vetor
+void ilbp_glcm (int **treinamento, int **imagem,int nlin, int ncol, int a);
 void get_random_file( char * file_path, char * img_type);
 int ilbp (int *matriz, float media);
 
@@ -91,6 +95,7 @@ int main()
 		}
 		nlin=i;
 		fclose(arquivo);
+
 		if (a==0){
 			treinamento = (int**) malloc(1*sizeof(int *));
 		}
@@ -109,638 +114,21 @@ int main()
 			exit(1);
 		}
 
-		// estrutura para calcular o resultado das matrizes 3x3
-		for (int i=1; i<(nlin-1); i++){
-			for (int j=1; j<(ncol-1); j++){
-				int matriz[3][3]; // matriz a ser enviada pra função
-				int *p = matriz;
-				float media = 0.0;
 
-				//passando os valores para a matriz
-				for (int m=0; m<3; m++){
-					for (int n=0; n<3; n++){
-						matriz[m][n] = *(*(imagem+i+m-1)+n+j+1);
-						media += matriz[m][n]; //calculando a media entre os dados
-					}
-				}
+		ilbp_glcm (treinamento, imagem, nlin, ncol, a); //calculando as metricas da imagem
 
-				media = (float) media/9;
-				int menor = ilbp(matriz, media);
-
-				//incrementando o valor obtido no resultado
-				*(*(treinamento+a)+menor) += 1;
+		for (int i=0; i<=a; i++){
+			for (int j=0; j<536; j++){
+				printf("%d ", *(*(treinamento+i)+j));
 			}
 		}
-																			
+		int x;
+		scanf ("%d", &x);
 
-		int **glcm;
-
-		glcm = (int **) malloc(256*sizeof(int*));
-
-		if (glcm==NULL){
-			printf("A locação falhou\n");
-			exit(1);
-		}
-
-		for (int i=0; i<256; i++){
-			*(glcm + i) = (int *) calloc(256, sizeof(int));
-
-			if (*(glcm + i) == NULL){
-				printf("A locação falhou\n");
-				exit(1);
-			}
-		}
-
-		//calculando o glcm   256x256
-		//vizinho da direita
-		for (int i=0; i<nlin; i++){
-			for (int j=0; j<(ncol-1); j++){
-				int linha = *(*(imagem+i)+j);
-				int coluna = *(*(imagem+i)+j+1);
-				*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
-			}
-		}
-
-		int contraste = 0;
-
-		//calculando o contraste
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				contraste += pow((i-j),2) * *(*(glcm+i)+j);
-			}
-		}
-
-		int energia = 0;
-
-		//calculando a energia
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				energia += pow(campo, 2);
-			}
-		}
-
-		int homogeneidade = 0;
-
-		//calculando a homogeneidade
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				if (i<=j) {
-					homogeneidade += campo/ (1+(j-i));
-				}
-				else{
-					homogeneidade += campo/(1+(i-j));
-				}
-			}
-		}
-
-		*(treinamento+a) = (int *) realloc(*(treinamento+a), 515*sizeof(int)); //declarando os novo tamanho dos dados da imagem
-
-		*(*(treinamento+a)+512) = contraste;
-		*(*(treinamento+a)+513) = energia;
-		*(*(treinamento+a)+514) = homogeneidade;
-
-		//limpando a matriz glcm
-		for (int i=0; i<256; i++) {
-			free (*(glcm+i));
-		}
-		free (glcm);
-
-
-
-		//fazendo o glcm da segunda direção
-		glcm = (int **) malloc(256*sizeof(int*));
-
-		if (glcm==NULL){
-			printf("A locação falhou\n");
-			exit(1);
-		}
-
-		for (int i=0; i<256; i++){
-			*(glcm + i) = (int *) calloc(256, sizeof(int));
-
-			if (*(glcm + i) == NULL){
-				printf("A locação falhou\n");
-				exit(1);
-			}
-		}
-
-		//calculando o glcm   256x256
-		//vizinho da direita -- baixo
-		for (int i=0; i<(nlin-1); i++){
-			for (int j=0; j<(ncol-1); j++){
-				int linha = *(*(imagem+i)+j);
-				int coluna = *(*(imagem+i+1)+j+1);
-				*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
-			}
-		}
-
-		contraste = 0;
-
-		//calculando o contraste
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				contraste += pow((i-j),2) * *(*(glcm+i)+j);
-			}
-		}
-
-		energia = 0;
-
-		//calculando a energia
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				energia += pow(campo, 2);
-			}
-		}
-
-		homogeneidade = 0;
-
-		//calculando a homogeneidade
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				if (i<=j) {
-					homogeneidade += campo/ (1+(j-i));
-				}
-				else{
-					homogeneidade += campo/(1+(i-j));
-				}
-			}
-		}
-
-		*(treinamento+a) = (int *) realloc(*(treinamento+a), 518*sizeof(int)); //declarando os novo tamanho dos dados da imagem
-
-		*(*(treinamento+a)+515) = contraste;
-		*(*(treinamento+a)+516) = energia;
-		*(*(treinamento+a)+517) = homogeneidade;
-
-		//limpando a matriz glcm
-		for (int i=0; i<256; i++) {
-			free (*(glcm+i));
-		}
-		free (glcm);
-
-
-
-		//fazendo o glcm da terceira direção
-		glcm = (int **) malloc(256*sizeof(int*));
-
-		if (glcm==NULL){
-			printf("A locação falhou\n");
-			exit(1);
-		}
-
-		for (int i=0; i<256; i++){
-			*(glcm + i) = (int *) calloc(256, sizeof(int));
-
-			if (*(glcm + i) == NULL){
-				printf("A locação falhou\n");
-				exit(1);
-			}
-		}
-
-		//calculando o glcm   256x256
-		//vizinho de baixo
-		for (int i=0; i<(nlin-1); i++){
-			for (int j=0; j<(ncol); j++){
-				int linha = *(*(imagem+i)+j);
-				int coluna = *(*(imagem+i+1)+j);
-				*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
-			}
-		}
-
-		contraste = 0;
-
-		//calculando o contraste
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				contraste += pow((i-j),2) * *(*(glcm+i)+j);
-			}
-		}
-
-		energia = 0;
-
-		//calculando a energia
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				energia += pow(campo, 2);
-			}
-		}
-
-		homogeneidade = 0;
-
-		//calculando a homogeneidade
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				if (i<=j) {
-					homogeneidade += campo/ (1+(j-i));
-				}
-				else{
-					homogeneidade += campo/(1+(i-j));
-				}
-			}
-		}
-
-		*(treinamento+a) = (int *) realloc(*(treinamento+a), 521*sizeof(int)); //declarando os novo tamanho dos dados da imagem
-
-		*(*(treinamento+a)+518) = contraste;
-		*(*(treinamento+a)+519) = energia;
-		*(*(treinamento+a)+520) = homogeneidade;
-
-		//limpando a matriz glcm
-		for (int i=0; i<256; i++) {
-			free (*(glcm+i));
-		}
-		free (glcm);
-
-
-
-		//fazendo o glcm da quarta direção
-		glcm = (int **) malloc(256*sizeof(int*));
-
-		if (glcm==NULL){
-			printf("A locação falhou\n");
-			exit(1);
-		}
-
-		for (int i=0; i<256; i++){
-			*(glcm + i) = (int *) calloc(256, sizeof(int));
-
-			if (*(glcm + i) == NULL){
-				printf("A locação falhou\n");
-				exit(1);
-			}
-		}
-
-		//calculando o glcm   256x256
-		//vizinho de inferior esquerdo
-		for (int i=0; i<(nlin-1); i++){
-			for (int j=1; j<(ncol); j++){
-				int linha = *(*(imagem+i)+j);
-				int coluna = *(*(imagem+i+1)+j-1);
-				*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
-			}
-		}
-
-		contraste = 0;
-
-		//calculando o contraste
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				contraste += pow((i-j),2) * *(*(glcm+i)+j);
-			}
-		}
-
-		energia = 0;
-
-		//calculando a energia
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				energia += pow(campo, 2);
-			}
-		}
-
-		homogeneidade = 0;
-
-		//calculando a homogeneidade
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				if (i<=j) {
-					homogeneidade += campo/ (1+(j-i));
-				}
-				else{
-					homogeneidade += campo/(1+(i-j));
-				}
-			}
-		}
-
-		*(treinamento+a) = (int *) realloc(*(treinamento+a), 524*sizeof(int)); //declarando os novo tamanho dos dados da imagem
-
-		*(*(treinamento+a)+521) = contraste;
-		*(*(treinamento+a)+522) = energia;
-		*(*(treinamento+a)+523) = homogeneidade;
-
-		//limpando a matriz glcm
-		for (int i=0; i<256; i++) {
-			free (*(glcm+i));
-		}
-		free (glcm);
-
-
-
-		//fazendo o glcm da quinta direção
-		glcm = (int **) malloc(256*sizeof(int*));
-
-		if (glcm==NULL){
-			printf("A locação falhou\n");
-			exit(1);
-		}
-
-		for (int i=0; i<256; i++){
-			*(glcm + i) = (int *) calloc(256, sizeof(int));
-
-			if (*(glcm + i) == NULL){
-				printf("A locação falhou\n");
-				exit(1);
-			}
-		}
-
-		//calculando o glcm   256x256
-		//vizinho de esquerdo
-		for (int i=0; i<(nlin); i++){
-			for (int j=1; j<(ncol); j++){
-				int linha = *(*(imagem+i)+j);
-				int coluna = *(*(imagem+i)+j-1);
-				*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
-			}
-		}
-
-		contraste = 0;
-
-		//calculando o contraste
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				contraste += pow((i-j),2) * *(*(glcm+i)+j);
-			}
-		}
-
-		energia = 0;
-
-		//calculando a energia
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				energia += pow(campo, 2);
-			}
-		}
-
-		homogeneidade = 0;
-
-		//calculando a homogeneidade
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				if (i<=j) {
-					homogeneidade += campo/ (1+(j-i));
-				}
-				else{
-					homogeneidade += campo/(1+(i-j));
-				}
-			}
-		}
-
-		*(treinamento+a) = (int *) realloc(*(treinamento+a), 527*sizeof(int)); //declarando os novo tamanho dos dados da imagem
-
-		*(*(treinamento+a)+524) = contraste;
-		*(*(treinamento+a)+525) = energia;
-		*(*(treinamento+a)+526) = homogeneidade;
-
-		//limpando a matriz glcm
-		for (int i=0; i<256; i++) {
-			free (*(glcm+i));
-		}
-		free (glcm);
-
-
-
-		//fazendo o glcm da sexta direção
-		glcm = (int **) malloc(256*sizeof(int*));
-
-		if (glcm==NULL){
-			printf("A locação falhou\n");
-			exit(1);
-		}
-
-		for (int i=0; i<256; i++){
-			*(glcm + i) = (int *) calloc(256, sizeof(int));
-
-			if (*(glcm + i) == NULL){
-				printf("A locação falhou\n");
-				exit(1);
-			}
-		}
-
-		//calculando o glcm   256x256
-		//vizinho de superior esquerdo
-		for (int i=1; i<(nlin); i++){
-			for (int j=1; j<(ncol); j++){
-				int linha = *(*(imagem+i)+j);
-				int coluna = *(*(imagem+i-1)+j-1);
-				*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
-			}
-		}
-
-		contraste = 0;
-
-		//calculando o contraste
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				contraste += pow((i-j),2) * *(*(glcm+i)+j);
-			}
-		}
-
-		energia = 0;
-
-		//calculando a energia
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				energia += pow(campo, 2);
-			}
-		}
-
-		homogeneidade = 0;
-
-		//calculando a homogeneidade
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				if (i<=j) {
-					homogeneidade += campo/ (1+(j-i));
-				}
-				else{
-					homogeneidade += campo/(1+(i-j));
-				}
-			}
-		}
-
-		*(treinamento+a) = (int *) realloc(*(treinamento+a), 530*sizeof(int)); //declarando os novo tamanho dos dados da imagem
-
-		*(*(treinamento+a)+527) = contraste;
-		*(*(treinamento+a)+528) = energia;
-		*(*(treinamento+a)+529) = homogeneidade;
-
-		//limpando a matriz glcm
-		for (int i=0; i<256; i++) {
-			free (*(glcm+i));
-		}
-		free (glcm);
-
-
-
-		//fazendo o glcm da setima direção
-		glcm = (int **) malloc(256*sizeof(int*));
-
-		if (glcm==NULL){
-			printf("A locação falhou\n");
-			exit(1);
-		}
-
-		for (int i=0; i<256; i++){
-			*(glcm + i) = (int *) calloc(256, sizeof(int));
-
-			if (*(glcm + i) == NULL){
-				printf("A locação falhou\n");
-				exit(1);
-			}
-		}
-
-		//calculando o glcm   256x256
-		//vizinho superior
-		for (int i=1; i<(nlin); i++){
-			for (int j=0; j<(ncol); j++){
-				int linha = *(*(imagem+i)+j);
-				int coluna = *(*(imagem+i-1)+j);
-				*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
-			}
-		}
-
-		contraste = 0;
-
-		//calculando o contraste
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				contraste += pow((i-j),2) * *(*(glcm+i)+j);
-			}
-		}
-
-		energia = 0;
-
-		//calculando a energia
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				energia += pow(campo, 2);
-			}
-		}
-
-		homogeneidade = 0;
-
-		//calculando a homogeneidade
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				if (i<=j) {
-					homogeneidade += campo/ (1+(j-i));
-				}
-				else{
-					homogeneidade += campo/(1+(i-j));
-				}
-			}
-		}
-
-		*(treinamento+a) = (int *) realloc(*(treinamento+a), 533*sizeof(int)); //declarando os novo tamanho dos dados da imagem
-
-		*(*(treinamento+a)+530) = contraste;
-		*(*(treinamento+a)+531) = energia;
-		*(*(treinamento+a)+532) = homogeneidade;
-
-		//limpando a matriz glcm
-		for (int i=0; i<256; i++) {
-			free (*(glcm+i));
-		}
-		free (glcm);
-
-
-
-		//fazendo o glcm da oitava direção
-		glcm = (int **) malloc(256*sizeof(int*));
-
-		if (glcm==NULL){
-			printf("A locação falhou\n");
-			exit(1);
-		}
-
-		for (int i=0; i<256; i++){
-			*(glcm + i) = (int *) calloc(256, sizeof(int));
-
-			if (*(glcm + i) == NULL){
-				printf("A locação falhou\n");
-				exit(1);
-			}
-		}
-
-		//calculando o glcm   256x256
-		//vizinho superior direito
-		for (int i=1; i<(nlin); i++){
-			for (int j=0; j<(ncol-1); j++){
-				int linha = *(*(imagem+i)+j);
-				int coluna = *(*(imagem+i-1)+j+1);
-				*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
-			}
-		}
-
-		contraste = 0;
-
-		//calculando o contraste
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				contraste += pow((i-j),2) * *(*(glcm+i)+j);
-			}
-		}
-
-		energia = 0;
-
-		//calculando a energia
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				energia += pow(campo, 2);
-			}
-		}
-
-		homogeneidade = 0;
-
-		//calculando a homogeneidade
-		for (int i=0; i<256; i++){
-			for (int j=0; j<256; j++){
-				int campo = *(*(glcm+i)+j);
-				if (i<=j) {
-					homogeneidade += campo/ (1+(j-i));
-				}
-				else{
-					homogeneidade += campo/(1+(i-j));
-				}
-			}
-		}
-
-		*(treinamento+a) = (int *) realloc(*(treinamento+a), 536*sizeof(int)); //declarando os novo tamanho dos dados da imagem
-
-		*(*(treinamento+a)+533) = contraste;
-		*(*(treinamento+a)+534) = energia;
-		*(*(treinamento+a)+535) = homogeneidade;
-
-
-
-		//limpando a matriz glcm
-		for (int i=0; i<256; i++) {
-			free (*(glcm+i));
-		}
-		free (glcm);
-
-	
 		for(int i=0; i<ncol; i++)
 		free(imagem[i]);
 		free(imagem);
 	}
-
-
 
 
 	//liberando a memoria dos valores de grama
@@ -751,12 +139,651 @@ int main()
 
 	return 0;
 }
+
+
+
+
+
+
 void get_random_file(char * file_path, char * img_type){
 		
 	int random_50 = (rand()%50)+1; //Gera número aleatório de 1 a 50 
 	sprintf(file_path ,"./DataSet/%s/%s_%02d.txt", img_type, img_type, random_50);
 	
 }
+
+
+void ilbp_glcm (int **treinamento, int **imagem,int nlin, int ncol, int a) {
+	
+
+	// estrutura para calcular o resultado das matrizes 3x3
+	for (int i=1; i<(nlin-1); i++){
+		for (int j=1; j<(ncol-1); j++){
+			int matriz[3][3]; // matriz a ser enviada pra função
+			int *p = matriz;
+			float media = 0.0;
+
+			//passando os valores para a matriz
+			for (int m=0; m<3; m++){
+				for (int n=0; n<3; n++){
+					matriz[m][n] = *(*(imagem+i+m-1)+n+j+1);
+					media += matriz[m][n]; //calculando a media entre os dados
+				}
+			}
+
+			media = (float) media/9;
+			int menor = ilbp(matriz, media);
+
+			//incrementando o valor obtido no resultado
+			*(*(treinamento+a)+menor) += 1;
+		}
+	}
+																		
+
+	int **glcm;
+
+	glcm = (int **) malloc(256*sizeof(int*));
+
+	if (glcm==NULL){
+		printf("A locação falhou\n");
+		exit(1);
+	}
+
+	for (int i=0; i<256; i++){
+		*(glcm + i) = (int *) calloc(256, sizeof(int));
+
+		if (*(glcm + i) == NULL){
+			printf("A locação falhou\n");
+			exit(1);
+		}
+	}
+
+	//calculando o glcm   256x256
+	//vizinho da direita
+	for (int i=0; i<nlin; i++){
+		for (int j=0; j<(ncol-1); j++){
+			int linha = *(*(imagem+i)+j);
+			int coluna = *(*(imagem+i)+j+1);
+			*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
+		}
+	}
+
+	int contraste = 0;
+
+	//calculando o contraste
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			contraste += pow((i-j),2) * *(*(glcm+i)+j);
+		}
+	}
+
+	int energia = 0;
+
+	//calculando a energia
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			energia += pow(campo, 2);
+		}
+	}
+
+	int homogeneidade = 0;
+
+	//calculando a homogeneidade
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			if (i<=j) {
+				homogeneidade += campo/ (1+(j-i));
+			}
+			else{
+				homogeneidade += campo/(1+(i-j));
+			}
+		}
+	}
+
+	*(treinamento+a) = (int *) realloc(*(treinamento+a), 515*sizeof(int)); //declarando os novo tamanho dos dados da imagem
+
+	*(*(treinamento+a)+512) = contraste;
+	*(*(treinamento+a)+513) = energia;
+	*(*(treinamento+a)+514) = homogeneidade;
+
+	//limpando a matriz glcm
+	for (int i=0; i<256; i++) {
+		free (*(glcm+i));
+	}
+	free (glcm);
+
+
+
+	//fazendo o glcm da segunda direção
+	glcm = (int **) malloc(256*sizeof(int*));
+
+	if (glcm==NULL){
+		printf("A locação falhou\n");
+		exit(1);
+	}
+
+	for (int i=0; i<256; i++){
+		*(glcm + i) = (int *) calloc(256, sizeof(int));
+
+		if (*(glcm + i) == NULL){
+			printf("A locação falhou\n");
+			exit(1);
+		}
+	}
+
+	//calculando o glcm   256x256
+	//vizinho da direita -- baixo
+	for (int i=0; i<(nlin-1); i++){
+		for (int j=0; j<(ncol-1); j++){
+			int linha = *(*(imagem+i)+j);
+			int coluna = *(*(imagem+i+1)+j+1);
+			*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
+		}
+	}
+
+	contraste = 0;
+
+	//calculando o contraste
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			contraste += pow((i-j),2) * *(*(glcm+i)+j);
+		}
+	}
+
+	energia = 0;
+
+	//calculando a energia
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			energia += pow(campo, 2);
+		}
+	}
+
+	homogeneidade = 0;
+
+	//calculando a homogeneidade
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			if (i<=j) {
+				homogeneidade += campo/ (1+(j-i));
+			}
+			else{
+				homogeneidade += campo/(1+(i-j));
+			}
+		}
+	}
+
+	*(treinamento+a) = (int *) realloc(*(treinamento+a), 518*sizeof(int)); //declarando os novo tamanho dos dados da imagem
+
+	*(*(treinamento+a)+515) = contraste;
+	*(*(treinamento+a)+516) = energia;
+	*(*(treinamento+a)+517) = homogeneidade;
+
+	//limpando a matriz glcm
+	for (int i=0; i<256; i++) {
+		free (*(glcm+i));
+	}
+	free (glcm);
+
+
+
+	//fazendo o glcm da terceira direção
+	glcm = (int **) malloc(256*sizeof(int*));
+
+	if (glcm==NULL){
+		printf("A locação falhou\n");
+		exit(1);
+	}
+
+	for (int i=0; i<256; i++){
+		*(glcm + i) = (int *) calloc(256, sizeof(int));
+
+		if (*(glcm + i) == NULL){
+			printf("A locação falhou\n");
+			exit(1);
+		}
+	}
+
+	//calculando o glcm   256x256
+	//vizinho de baixo
+	for (int i=0; i<(nlin-1); i++){
+		for (int j=0; j<(ncol); j++){
+			int linha = *(*(imagem+i)+j);
+			int coluna = *(*(imagem+i+1)+j);
+			*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
+		}
+	}
+
+	contraste = 0;
+
+	//calculando o contraste
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			contraste += pow((i-j),2) * *(*(glcm+i)+j);
+		}
+	}
+
+	energia = 0;
+
+	//calculando a energia
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			energia += pow(campo, 2);
+		}
+	}
+
+	homogeneidade = 0;
+
+	//calculando a homogeneidade
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			if (i<=j) {
+				homogeneidade += campo/ (1+(j-i));
+			}
+			else{
+				homogeneidade += campo/(1+(i-j));
+			}
+		}
+	}
+
+	*(treinamento+a) = (int *) realloc(*(treinamento+a), 521*sizeof(int)); //declarando os novo tamanho dos dados da imagem
+
+	*(*(treinamento+a)+518) = contraste;
+	*(*(treinamento+a)+519) = energia;
+	*(*(treinamento+a)+520) = homogeneidade;
+
+	//limpando a matriz glcm
+	for (int i=0; i<256; i++) {
+		free (*(glcm+i));
+	}
+	free (glcm);
+
+
+
+	//fazendo o glcm da quarta direção
+	glcm = (int **) malloc(256*sizeof(int*));
+
+	if (glcm==NULL){
+		printf("A locação falhou\n");
+		exit(1);
+	}
+
+	for (int i=0; i<256; i++){
+		*(glcm + i) = (int *) calloc(256, sizeof(int));
+
+		if (*(glcm + i) == NULL){
+			printf("A locação falhou\n");
+			exit(1);
+		}
+	}
+
+	//calculando o glcm   256x256
+	//vizinho de inferior esquerdo
+	for (int i=0; i<(nlin-1); i++){
+		for (int j=1; j<(ncol); j++){
+			int linha = *(*(imagem+i)+j);
+			int coluna = *(*(imagem+i+1)+j-1);
+			*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
+		}
+	}
+
+	contraste = 0;
+
+	//calculando o contraste
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			contraste += pow((i-j),2) * *(*(glcm+i)+j);
+		}
+	}
+
+	energia = 0;
+
+	//calculando a energia
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			energia += pow(campo, 2);
+		}
+	}
+
+	homogeneidade = 0;
+
+	//calculando a homogeneidade
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			if (i<=j) {
+				homogeneidade += campo/ (1+(j-i));
+			}
+			else{
+				homogeneidade += campo/(1+(i-j));
+			}
+		}
+	}
+
+	*(treinamento+a) = (int *) realloc(*(treinamento+a), 524*sizeof(int)); //declarando os novo tamanho dos dados da imagem
+
+	*(*(treinamento+a)+521) = contraste;
+	*(*(treinamento+a)+522) = energia;
+	*(*(treinamento+a)+523) = homogeneidade;
+
+	//limpando a matriz glcm
+	for (int i=0; i<256; i++) {
+		free (*(glcm+i));
+	}
+	free (glcm);
+
+
+
+	//fazendo o glcm da quinta direção
+	glcm = (int **) malloc(256*sizeof(int*));
+
+	if (glcm==NULL){
+		printf("A locação falhou\n");
+		exit(1);
+	}
+
+	for (int i=0; i<256; i++){
+		*(glcm + i) = (int *) calloc(256, sizeof(int));
+
+		if (*(glcm + i) == NULL){
+			printf("A locação falhou\n");
+			exit(1);
+		}
+	}
+
+	//calculando o glcm   256x256
+	//vizinho de esquerdo
+	for (int i=0; i<(nlin); i++){
+		for (int j=1; j<(ncol); j++){
+			int linha = *(*(imagem+i)+j);
+			int coluna = *(*(imagem+i)+j-1);
+			*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
+		}
+	}
+
+	contraste = 0;
+
+	//calculando o contraste
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			contraste += pow((i-j),2) * *(*(glcm+i)+j);
+		}
+	}
+
+	energia = 0;
+
+	//calculando a energia
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			energia += pow(campo, 2);
+		}
+	}
+
+	homogeneidade = 0;
+
+	//calculando a homogeneidade
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			if (i<=j) {
+				homogeneidade += campo/ (1+(j-i));
+			}
+			else{
+				homogeneidade += campo/(1+(i-j));
+			}
+		}
+	}
+
+	*(treinamento+a) = (int *) realloc(*(treinamento+a), 527*sizeof(int)); //declarando os novo tamanho dos dados da imagem
+
+	*(*(treinamento+a)+524) = contraste;
+	*(*(treinamento+a)+525) = energia;
+	*(*(treinamento+a)+526) = homogeneidade;
+
+	//limpando a matriz glcm
+	for (int i=0; i<256; i++) {
+		free (*(glcm+i));
+	}
+	free (glcm);
+
+
+
+	//fazendo o glcm da sexta direção
+	glcm = (int **) malloc(256*sizeof(int*));
+
+	if (glcm==NULL){
+		printf("A locação falhou\n");
+		exit(1);
+	}
+
+	for (int i=0; i<256; i++){
+		*(glcm + i) = (int *) calloc(256, sizeof(int));
+
+		if (*(glcm + i) == NULL){
+			printf("A locação falhou\n");
+			exit(1);
+		}
+	}
+
+	//calculando o glcm   256x256
+	//vizinho de superior esquerdo
+	for (int i=1; i<(nlin); i++){
+		for (int j=1; j<(ncol); j++){
+			int linha = *(*(imagem+i)+j);
+			int coluna = *(*(imagem+i-1)+j-1);
+			*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
+		}
+	}
+
+	contraste = 0;
+
+	//calculando o contraste
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			contraste += pow((i-j),2) * *(*(glcm+i)+j);
+		}
+	}
+
+	energia = 0;
+
+	//calculando a energia
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			energia += pow(campo, 2);
+		}
+	}
+
+	homogeneidade = 0;
+
+	//calculando a homogeneidade
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			if (i<=j) {
+				homogeneidade += campo/ (1+(j-i));
+			}
+			else{
+				homogeneidade += campo/(1+(i-j));
+			}
+		}
+	}
+
+	*(treinamento+a) = (int *) realloc(*(treinamento+a), 530*sizeof(int)); //declarando os novo tamanho dos dados da imagem
+
+	*(*(treinamento+a)+527) = contraste;
+	*(*(treinamento+a)+528) = energia;
+	*(*(treinamento+a)+529) = homogeneidade;
+
+	//limpando a matriz glcm
+	for (int i=0; i<256; i++) {
+		free (*(glcm+i));
+	}
+	free (glcm);
+
+
+
+	//fazendo o glcm da setima direção
+	glcm = (int **) malloc(256*sizeof(int*));
+
+	if (glcm==NULL){
+		printf("A locação falhou\n");
+		exit(1);
+	}
+
+	for (int i=0; i<256; i++){
+		*(glcm + i) = (int *) calloc(256, sizeof(int));
+
+		if (*(glcm + i) == NULL){
+			printf("A locação falhou\n");
+			exit(1);
+		}
+	}
+
+	//calculando o glcm   256x256
+	//vizinho superior
+	for (int i=1; i<(nlin); i++){
+		for (int j=0; j<(ncol); j++){
+			int linha = *(*(imagem+i)+j);
+			int coluna = *(*(imagem+i-1)+j);
+			*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
+		}
+	}
+
+	contraste = 0;
+
+	//calculando o contraste
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			contraste += pow((i-j),2) * *(*(glcm+i)+j);
+		}
+	}
+
+	energia = 0;
+
+	//calculando a energia
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			energia += pow(campo, 2);
+		}
+	}
+
+	homogeneidade = 0;
+
+	//calculando a homogeneidade
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			if (i<=j) {
+				homogeneidade += campo/ (1+(j-i));
+			}
+			else{
+				homogeneidade += campo/(1+(i-j));
+			}
+		}
+	}
+
+	*(treinamento+a) = (int *) realloc(*(treinamento+a), 533*sizeof(int)); //declarando os novo tamanho dos dados da imagem
+
+	*(*(treinamento+a)+530) = contraste;
+	*(*(treinamento+a)+531) = energia;
+	*(*(treinamento+a)+532) = homogeneidade;
+
+	//limpando a matriz glcm
+	for (int i=0; i<256; i++) {
+		free (*(glcm+i));
+	}
+	free (glcm);
+
+
+
+	//fazendo o glcm da oitava direção
+	glcm = (int **) malloc(256*sizeof(int*));
+
+	if (glcm==NULL){
+		printf("A locação falhou\n");
+		exit(1);
+	}
+
+	for (int i=0; i<256; i++){
+		*(glcm + i) = (int *) calloc(256, sizeof(int));
+
+		if (*(glcm + i) == NULL){
+			printf("A locação falhou\n");
+			exit(1);
+		}
+	}
+
+	//calculando o glcm   256x256
+	//vizinho superior direito
+	for (int i=1; i<(nlin); i++){
+		for (int j=0; j<(ncol-1); j++){
+			int linha = *(*(imagem+i)+j);
+			int coluna = *(*(imagem+i-1)+j+1);
+			*(*(glcm + linha)+coluna) = *(*(glcm + linha)+coluna)+1;
+		}
+	}
+
+	contraste = 0;
+
+	//calculando o contraste
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			contraste += pow((i-j),2) * *(*(glcm+i)+j);
+		}
+	}
+
+	energia = 0;
+
+	//calculando a energia
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			energia += pow(campo, 2);
+		}
+	}
+
+	homogeneidade = 0;
+
+	//calculando a homogeneidade
+	for (int i=0; i<256; i++){
+		for (int j=0; j<256; j++){
+			int campo = *(*(glcm+i)+j);
+			if (i<=j) {
+				homogeneidade += campo/ (1+(j-i));
+			}
+			else{
+				homogeneidade += campo/(1+(i-j));
+			}
+		}
+	}
+
+	*(treinamento+a) = (int *) realloc(*(treinamento+a), 536*sizeof(int)); //declarando os novo tamanho dos dados da imagem
+
+	*(*(treinamento+a)+533) = contraste;
+	*(*(treinamento+a)+534) = energia;
+	*(*(treinamento+a)+535) = homogeneidade;
+
+
+	//limpando a matriz glcm
+	for (int i=0; i<256; i++) {
+		free (*(glcm+i));
+	}
+	free (glcm);
+}
+
+
+
+
 
 int ilbp (int *matriz, float media){
 	int binario[3][3];
@@ -819,4 +846,3 @@ int ilbp (int *matriz, float media){
 
 	return menor;
 }
-
