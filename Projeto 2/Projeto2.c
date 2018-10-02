@@ -145,6 +145,8 @@ int main()
 	}
 	free (treinamento);
 
+	free(treinamento);
+
 	return 0;
 }
 
