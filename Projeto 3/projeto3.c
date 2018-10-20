@@ -6,7 +6,7 @@ struct Pessoa {
 	char nome[101];
 	char telefone[11];
 	char endereco[101];
-	char cep[10];
+	unsigned int cep;
 	char nascimento[11];
 	struct Pessoa *proximo;
 	struct Pessoa *anterior;
@@ -16,15 +16,88 @@ typedef struct Pessoa contato;
 
 contato *lista_contatos_vazia();
 contato *leitura_inicial();
+void novo_contato(contato *contatos, contato *novo);
 
 int main () {
 
 	contato *contatos;
+	contato *novo;
 	contatos = lista_contatos_vazia;
-	
-	leitura_inicial();
 
+	//leitura_inicial();
 
+	int opcao;
+	do{
+		printf("********** Seja bem-vindo a sua lista de contatos **********\n\n");
+		printf("1. Inserir novo contato\n");
+		printf("2. Remover contatos\n");
+		printf("3. Realizar busca de usuários\n");
+		printf("4. Visualizar todos os contatos\n");
+		printf("Indique o número de uma das opções acima: ");
+		scanf ("%d", &opcao);
+		char lixo;
+		//scanf("%c", &lixo);
+
+		switch (opcao){
+			case 1:
+				novo = (contato *) malloc(sizeof(contato));
+				if (novo == NULL)
+					exit (1);
+
+				printf("Insira o nome do contato: ");
+				scanf(" %[^\n]", novo->nome);
+
+				char t[11];
+				printf("Insira o Telefone: ");
+				scanf(" %[^\n]", t);
+
+				//verificador do telefone
+				int i;
+				int j;
+				for(i=0, j=0; i<10; i++, j++) {
+					if (j==5){
+						if(t[i] == '-'){
+							novo->telefone[j] = '-';
+							j++;
+						}
+					}
+					novo->telefone[i] = t[j];
+				}
+			
+
+				printf("Insira o endereço: ");
+				scanf(" %[^\n]", novo->endereco);
+
+				printf("Insira o CEP (padrão EUA): ");
+				scanf(" %u", &novo->cep);
+
+				printf("Insira a data de nascimento: ");
+				scanf(" %[^\n]", novo->nascimento);
+
+				printf("Nome: %s\n", novo->nome);
+				printf("Telefone: %s\n", novo->telefone);
+				printf("Endereço: %s\n", novo->endereco);
+				printf("CEP: %u\n", novo->cep);
+				printf("Data de Nascimento: %s\n", novo->nascimento);
+
+				scanf("%s", novo->nome);
+
+				novo_contato(contatos, novo);
+
+				free (novo);
+			break;
+			case 2:
+
+			break;
+			case 3:
+
+			break;
+			case 4:
+
+			break;
+		}
+
+	} while (opcao != 4);
 
 
 
@@ -92,3 +165,10 @@ contato * leitura_inicial(){
 	fclose(arquivo);
 }
 
+
+void novo_contato(contato *contatos, contato *novo) {
+	
+
+
+	
+}
