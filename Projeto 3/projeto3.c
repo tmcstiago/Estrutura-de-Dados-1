@@ -13,10 +13,15 @@ struct Pessoa {
 };	
 
 typedef struct Pessoa contato;
-contato * leitura_inicial();
+
+contato *lista_contatos_vazia();
+contato *leitura_inicial();
 
 int main () {
 
+	contato *contatos;
+	contatos = lista_contatos_vazia;
+	
 	leitura_inicial();
 
 
@@ -25,6 +30,12 @@ int main () {
 
 	return 0;
 }
+
+
+contato *lista_contatos_vazia(){
+	return NULL;
+}
+
 
 contato * leitura_inicial(){
 	FILE *arquivo;
