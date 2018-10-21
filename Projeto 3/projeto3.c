@@ -16,13 +16,14 @@ typedef struct Pessoa contato;
 
 contato *lista_contatos_vazia();
 contato *leitura_inicial();
-void novo_contato(contato *contatos, contato *novo);
+contato *novo_contato(contato *contatos, contato *novo);
+void imprimi_contatos(contato *contatos);
 
 int main () {
 
 	contato *contatos;
 	contato *novo;
-	contatos = lista_contatos_vazia;
+	contatos = lista_contatos_vazia();
 
 	//leitura_inicial();
 
@@ -33,6 +34,7 @@ int main () {
 		printf("2. Remover contatos\n");
 		printf("3. Realizar busca de usuários\n");
 		printf("4. Visualizar todos os contatos\n");
+		printf("5. Fechar a lista de contatos\n");
 		printf("Indique o número de uma das opções acima: ");
 		scanf ("%d", &opcao);
 		char lixo;
@@ -80,9 +82,8 @@ int main () {
 				printf("CEP: %u\n", novo->cep);
 				printf("Data de Nascimento: %s\n", novo->nascimento);
 
-				scanf("%s", novo->nome);
-
-				novo_contato(contatos, novo);
+				contatos = novo_contato(contatos, novo);
+				printf ("\n*************Nome do contatos: %s *************", contatos->nome);
 
 				free (novo);
 			break;
@@ -93,11 +94,14 @@ int main () {
 
 			break;
 			case 4:
+				imprimi_contatos(contatos);
 
+			break;
+			case 5:
 			break;
 		}
 
-	} while (opcao != 4);
+	} while (opcao != 5);
 
 
 
@@ -166,9 +170,40 @@ contato * leitura_inicial(){
 }
 
 
-void novo_contato(contato *contatos, contato *novo) {
-	
+contato *novo_contato(contato *contatos, contato *novo) {
+	if (contatos == NULL){
+		contatos = (contato *) malloc(sizeof(contato));
 
+		contatos->anterior = NULL;
+		contatos->proximo = NULL;
 
-	
+		return novo;
+	}
+	else {
+		contato *atual;
+
+		for (atual = contatos; atual->proximo != NULL; atual = atual->proximo){}
+		atual->proximo = novo;
+		novo->anterior = atual;
+		novo->proximo = NULL;
+		printf("Nome: %s\n", contatos->nome);
+		return contatos;
+	}
+}
+
+void imprimi_contatos(contato *contatos){
+	contato *atual;
+
+	int i=1;
+	for (atual = contatos; atual != NULL; atual = atual->proximo){
+		printf("Contato %d\n", i);
+		printf("Telefone: %s\n", atual->telefone);
+		printf("Nome: %s\n", atual->nome);
+		printf("Endereço: %s\n", atual->endereco);
+		printf("CEP: %u\n", atual->cep);
+		printf("Data de Nascimento: %s\n", atual->nascimento);
+		printf("\n\n\n");
+		i++;
+	}
+
 }
