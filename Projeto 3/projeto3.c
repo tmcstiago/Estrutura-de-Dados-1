@@ -1,3 +1,23 @@
+projeto3.c
+
+Tipo
+C
+Tamanho
+8 KB (8.433 bytes)
+Armazenamento usado
+8 KB (8.433 bytes)
+Local
+Projeto 3
+Proprietário
+eu
+Modificado
+em 13:59 por mim
+Aberto
+em 19:49 por mim
+Criado em
+13:59 com o Google Drive Web
+Adicionar uma descrição
+Os leitores podem fazer o download
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +40,8 @@ contato *novo_contato(contato *contatos, contato *novo);
 void imprimi_contatos(contato *contatos);
 void busca_contato(contato *contatos, char *busca);
 void remove_contato(contato *contatos, char *busca);
+int verificador_telefone(contato *novo, char *t);
+int verificador_nascimento(contato *novo, char *t);
 
 int main () {
 
@@ -36,7 +58,7 @@ int main () {
 	
 	int opcao;
 	do{
-		MENU: printf("1. Inserir novo contato\n");
+		printf("1. Inserir novo contato\n");
 		printf("2. Remover contatos\n");
 		printf("3. Realizar busca de usuários\n");
 		printf("4. Visualizar todos os contatos\n");
@@ -55,32 +77,54 @@ int main () {
 				printf("Insira o nome do contato: ");
 				scanf(" %[^\n]", novo->nome);
 
-				char t[11];
-				printf("Insira o Telefone: ");
-				scanf(" %[^\n]", t);
-
 				//verificador do telefone
-				int i;
-				int j;
-				for(i=0, j=0; i<10; i++, j++) {
-					if (j==5){
-						if(t[i] == '-'){
-							novo->telefone[j] = '-';
-							j++;
-						}
-					}
-					novo->telefone[i] = t[j];
+				while (1){
+					char t[11];
+					printf("Insira o Telefone: ");
+					scanf(" %[^\n]", t);
+					ponto = t;
+
+					int certo = verificador_telefone(novo, ponto);
+
+					if(certo)
+						break;
+
+					printf("\n*** Telefone inválido, utilize o formato xxxxx-xxxx ***\n\n");
+
 				}
-			
 
 				printf("Insira o endereço: ");
 				scanf(" %[^\n]", novo->endereco);
 
-				printf("Insira o CEP (padrão EUA): ");
-				scanf(" %u", &novo->cep);
 
-				printf("Insira a data de nascimento: ");
-				scanf(" %[^\n]", novo->nascimento);
+				//verificador do CEP
+				while (1){
+ 					printf("Insira o CEP (padrão EUA): ");
+					scanf(" %u", &novo->cep);
+					
+					if(novo->cep > 9999 && novo->cep < 100000)
+						break;
+
+					printf("\n*** CEP invalido, utilize o formato xxxxx ***\n\n");
+				}
+
+
+				//verificador data de nascimento
+				while (1){
+					char t[11];
+
+					printf("Insira a data de nascimento: ");
+					scanf(" %[^\n]", t);
+
+					ponto = t;
+
+					int certo = verificador_nascimento(novo, ponto);
+
+					if(certo)
+						break;
+
+					printf("\n*** Data inválida, utilize o formato dd/mm/aaaa ***\n\n");
+				}
 
 				// printf("Nome: %s\n", novo->nome);
 				// printf("Telefone: %s\n", novo->telefone);
@@ -287,7 +331,14 @@ void remove_contato(contato *contatos, char *busca){
 				if (*(busca+j) == '\0'){
 					contato *excluir;
 
-					if (atual->anterior==NULL){
+					if (atual->anterior==NULL && atual->proximo == NULL){
+						free(contatos);
+
+						contatos = lista_contatos_vazia();
+
+						goto finalizado;
+					}
+					else if (atual->anterior==NULL){
 						contato *p;
 
 						p = atual->proximo;
@@ -335,6 +386,67 @@ void remove_contato(contato *contatos, char *busca){
 				atual = atual->proximo;
 			}
 		} while (atual != NULL);
+		finalizado: printf("\nVocê não tem mais nennhum contato na sua agenda\n\n");
 	}
 }
 
+
+int verificador_telefone(contato *novo, char *t) {
+	int i;
+	int j;
+	for(i=0, j=0; i<10; i++, j++) {
+		if(i != 5){
+			if(*(t+j) >= 48 && *(t+j) <= 57);
+			else
+				return 0;
+		}
+		else{
+			if(*(t+i) == '-');
+			else if(*(t+j) >= 48 && *(t+j) <= 57){
+				novo->telefone[i] = '-';
+				i++;
+			}
+			else
+				return 0;
+		}
+		novo->telefone[i] = *(t+j);
+	}
+	return 1;
+}
+
+
+int verificador_nascimento(contato *novo, char *t) {
+	int i;
+	int j;
+	int cont;
+	for(i=0, j=0, cont=0; i<10; i++, j++) {
+		if(i == 2){
+			if(*(t+j) == '/')
+				cont++;
+			else if(*(t+j) >= 48 && *(t+j) <= 57){
+				novo->telefone[i] = '/';
+				i++;
+			}
+			else
+				return 0;
+		}
+		else if(i == 5){
+			if(*(t+j) == '/' && cont==1);
+			else if (*(t+j) != '/' && cont==1)
+				return 0;
+			else if(*(t+j) >= 48 && *(t+j) <= 57){
+				novo->telefone[i] = '/';
+				i++;
+			}
+			else
+				return 0;
+		}
+		else{
+			if(*(t+j) >= 48 && *(t+j) <= 57);
+			else
+				return 0;
+		}
+		novo->telefone[i] = *(t+j);
+	}
+	return 1;
+}
