@@ -19,6 +19,7 @@ contato *leitura_inicial();
 contato *novo_contato(contato *contatos, contato *novo);
 void imprimi_contatos(contato *contatos);
 void busca_contato(contato *contatos, char *busca);
+void remove_contato(contato *contatos, char *busca);
 
 int main () {
 
@@ -35,7 +36,7 @@ int main () {
 	
 	int opcao;
 	do{
-		printf("1. Inserir novo contato\n");
+		MENU: printf("1. Inserir novo contato\n");
 		printf("2. Remover contatos\n");
 		printf("3. Realizar busca de usuários\n");
 		printf("4. Visualizar todos os contatos\n");
@@ -81,23 +82,27 @@ int main () {
 				printf("Insira a data de nascimento: ");
 				scanf(" %[^\n]", novo->nascimento);
 
-				printf("Nome: %s\n", novo->nome);
-				printf("Telefone: %s\n", novo->telefone);
-				printf("Endereço: %s\n", novo->endereco);
-				printf("CEP: %u\n", novo->cep);
-				printf("Data de Nascimento: %s\n", novo->nascimento);
+				// printf("Nome: %s\n", novo->nome);
+				// printf("Telefone: %s\n", novo->telefone);
+				// printf("Endereço: %s\n", novo->endereco);
+				// printf("CEP: %u\n", novo->cep);
+				// printf("Data de Nascimento: %s\n", novo->nascimento);
 
 				contatos = novo_contato(contatos, novo);
 
 				printf("\n\n");
-				free (novo);
+				// free (novo);
 			break;
 			case 2:
+				printf("Insira o nome do cotato(s) que você deseja remover: ");
+				scanf(" %[^\n]", busca);
 
+				ponto = busca;
+
+				remove_contato(contatos, busca);
 			break;
 			case 3:
-
-				printf("Insira o nome do cotato(s) que você deseja buscar\n");
+				printf("Insira o nome do cotato(s) que você deseja buscar: ");
 				scanf(" %[^\n]", busca);
 
 				ponto = busca;
@@ -182,29 +187,19 @@ contato * leitura_inicial(){
 
 
 contato *novo_contato(contato *contatos, contato *novo) {
-	contato *new;
-	new = (contato *) malloc(sizeof(contato));
-	if(new == NULL)
-		exit(-1);
-	strcpy(new->nome,novo->nome);
-	strcpy(new->telefone,novo->telefone);
-	strcpy(new->endereco,novo->endereco);
-	new->cep=novo->cep;
-	strcpy(new->nascimento,novo->nascimento);
-
 	if (contatos == NULL){
 		novo->anterior = NULL;
 		novo->proximo = NULL;
 
-		return new;
+		return novo;
 	}
 	else {
 		contato *atual;
 
 		for (atual = contatos; atual->proximo != NULL; atual = atual->proximo){}
-		atual->proximo = new;
-		new->anterior = contatos;
-		new->proximo = NULL;
+		atual->proximo = novo;
+		novo->anterior = contatos;
+		novo->proximo = NULL;
 		return contatos;
 	}
 }
@@ -213,18 +208,23 @@ contato *novo_contato(contato *contatos, contato *novo) {
 void imprimi_contatos(contato *contatos){
 	contato *atual;
 
-	int i=1;
-	for (atual = contatos; atual != NULL; atual = atual->proximo){
-		printf("Nome: %s\n", atual->nome);
-		printf("Telefone: %s\n", atual->telefone);
-		printf("Endereço: %s\n", atual->endereco);
-		printf("CEP: %u\n", atual->cep);
-		printf("Data de Nascimento: %s\n", atual->nascimento);
-		printf("\n");
-		i++;
+	if (contatos != NULL){
+		int i=1;
+		for (atual = contatos; atual != NULL; atual = atual->proximo){
+			printf("Nome: %s\n", atual->nome);
+			printf("Telefone: %s\n", atual->telefone);
+			printf("Endereço: %s\n", atual->endereco);
+			printf("CEP: %u\n", atual->cep);
+			printf("Data de Nascimento: %s\n", atual->nascimento);
+			printf("\n");
+			i++;
+		}
 	}
-		printf("\n\n\n");
-
+	else {
+		printf("Agenda Vazia!!\n" );
+	}
+	
+	printf("\n\n\n");
 }
 
 
@@ -264,6 +264,77 @@ void busca_contato(contato *contatos, char *busca){
 	if (cont_loc==0){
 		printf("\nNenhum contato localizado\n");
 	}
-
-
 }
+
+
+void remove_contato(contato *contatos, char *busca){
+	busca_contato(contatos, busca);
+
+	char confirmar;
+	printf("Deseja excluir os contatos acima? [s/n]: ");
+	scanf(" %c", &confirmar);
+
+	if (confirmar == 's' ||  confirmar == 'S') {
+		contato *atual;
+
+		atual = contatos;
+		do{
+			int j=0;
+			for(int i=0; atual->nome[i] != '\0'; i++){
+				if (*(busca+j)>= 97 && *(busca+j)<=122){
+					*(busca+j) = *(busca+j)-32;
+				}
+				if (*(busca+j) == '\0'){
+					contato *excluir;
+
+					if (atual->anterior==NULL){
+						contato *p;
+
+						p = atual->proximo;
+						p->anterior = NULL;
+
+						excluir = atual;
+						atual = atual->proximo;
+					}
+					else if(atual->proximo == NULL){
+						contato *a;
+
+						a = atual->anterior;
+						a->proximo = NULL;
+
+						excluir = atual;
+						atual = atual->proximo;
+					}
+					else{
+						contato *a;
+						contato *p;
+
+						a = atual->anterior;
+						a->proximo = atual->proximo;
+
+						p = atual->proximo;
+						p->anterior = atual->anterior;
+
+						excluir = atual;
+						atual = atual->proximo;
+					}
+					j = 555;
+					free(excluir);
+					break;
+				}
+				else {
+					if(atual->nome[i] == *(busca+j) || atual->nome[i] == *(busca+j)+32){
+						j++;
+					}
+					else {
+						j=0;
+					}
+				}
+			}
+			if (j != 555){
+				atual = atual->proximo;
+			}
+		} while (atual != NULL);
+	}
+}
+
