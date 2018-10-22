@@ -19,6 +19,7 @@ contato *leitura_inicial();
 contato *novo_contato(contato *contatos, contato *novo);
 void libera_contatos(contato *contatos);
 void imprimi_contatos(contato *contatos);
+void salvar_arquivo(contato *contatos);
 
 int main () {
 	contato *contatos;
@@ -26,12 +27,9 @@ int main () {
 	contatos = lista_contatos_vazia();
 	contatos = leitura_inicial();
 	//imprimi_contatos(contatos);
-	libera_contatos(contatos);
-	imprimi_contatos(contatos);
-	if(contatos == NULL)
-		printf("LIBERADO\n");
 	int opcao;
 	do{
+		system("clear");
 		printf("********** Seja bem-vindo a sua lista de contatos **********\n\n");
 		printf("1. Inserir novo contato\n");
 		printf("2. Remover contatos\n");
@@ -40,9 +38,10 @@ int main () {
 		printf("5. Fechar a lista de contatos\n");
 		printf("Indique o número de uma das opções acima: ");
 		scanf ("%d", &opcao);
+		getchar();
 		char lixo;
 		//scanf("%c", &lixo);
-
+		system("clear");
 		switch (opcao){
 			case 1:
 				novo = lista_contatos_vazia();
@@ -86,9 +85,11 @@ int main () {
 				printf("Endereço: %s\n", novo->endereco);
 				printf("CEP: %u\n", novo->cep);
 				printf("Data de Nascimento: %s\n", novo->nascimento);
-
+				getchar();
 				contatos = novo_contato(contatos, novo);
-
+				printf("Cadastro realizado com sucesso!\n");
+				printf("Aperte enter para continuar:");
+				getchar();
 				//free (novo);
 			break;
 			case 2:
@@ -99,6 +100,8 @@ int main () {
 			break;
 			case 4:
 				imprimi_contatos(contatos);
+				printf("Aperte enter para continuar:");
+				getchar();
 
 			break;
 			case 5:
@@ -106,7 +109,8 @@ int main () {
 		}
 
 	} while (opcao != 5);
-
+	salvar_arquivo(contatos);
+	libera_contatos(contatos);
 
 
 	return 0;
@@ -119,15 +123,32 @@ contato *lista_contatos_vazia(){
 void libera_contatos(contato *contatos){
 	contato *atual;
 	for (atual = contatos; atual != NULL; contatos = atual){
-		printf("liberando: %s\n", contatos->nome);
+		//printf("liberando: %s\n", contatos->nome);
 		atual=atual->proximo;
-		contatos = NULL;
 		free(contatos);
+		contatos = NULL;
 	}
-	if(contatos == NULL)
-		printf("LIBERADO\n");
+	//if(contatos == NULL)
+		//printf("LIBERADO\n");
 }	
-
+void salvar_arquivo(contato *contatos){
+	FILE *arquivo;
+	arquivo = fopen("contatos.txt", "w");
+	if (arquivo == NULL){
+		printf("Erro na abertura do arquivo!");
+		exit(-1);
+	}
+	contato *atual;
+	for (atual = contatos; atual != NULL; atual = atual->proximo){
+		fprintf(arquivo, "%s\n", atual->nome);
+		fprintf(arquivo, "%s\n", atual->telefone);
+		fprintf(arquivo, "%s\n", atual->endereco);
+		fprintf(arquivo, "%u\n", atual->cep);
+		fprintf(arquivo, "%s\n", atual->nascimento);
+		fprintf(arquivo, "$\n");
+	}
+	
+}
 contato * leitura_inicial(){
 	FILE *arquivo;
 	arquivo = fopen("contatos.txt", "r");
