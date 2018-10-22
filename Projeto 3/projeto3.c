@@ -90,7 +90,7 @@ int main () {
 				contatos = novo_contato(contatos, novo);
 
 				printf("\n\n");
-				//free (novo);
+				free (novo);
 			break;
 			case 2:
 
@@ -182,19 +182,29 @@ contato * leitura_inicial(){
 
 
 contato *novo_contato(contato *contatos, contato *novo) {
+	contato *new;
+	new = (contato *) malloc(sizeof(contato));
+	if(new == NULL)
+		exit(-1);
+	strcpy(new->nome,novo->nome);
+	strcpy(new->telefone,novo->telefone);
+	strcpy(new->endereco,novo->endereco);
+	new->cep=novo->cep;
+	strcpy(new->nascimento,novo->nascimento);
+
 	if (contatos == NULL){
 		novo->anterior = NULL;
 		novo->proximo = NULL;
 
-		return novo;
+		return new;
 	}
 	else {
 		contato *atual;
 
 		for (atual = contatos; atual->proximo != NULL; atual = atual->proximo){}
-		atual->proximo = novo;
-		novo->anterior = contatos;
-		novo->proximo = NULL;
+		atual->proximo = new;
+		new->anterior = contatos;
+		new->proximo = NULL;
 		return contatos;
 	}
 }
