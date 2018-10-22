@@ -42,6 +42,8 @@ int main () {
 
 		switch (opcao){
 			case 1:
+				novo = lista_contatos_vazia();
+
 				novo = (contato *) malloc(sizeof(contato));
 				if (novo == NULL)
 					exit (1);
@@ -83,9 +85,8 @@ int main () {
 				printf("Data de Nascimento: %s\n", novo->nascimento);
 
 				contatos = novo_contato(contatos, novo);
-				printf ("\n*************Nome do contatos: %s *************", contatos->nome);
 
-				free (novo);
+				//free (novo);
 			break;
 			case 2:
 
@@ -174,8 +175,8 @@ contato *novo_contato(contato *contatos, contato *novo) {
 	if (contatos == NULL){
 		contatos = (contato *) malloc(sizeof(contato));
 
-		contatos->anterior = NULL;
-		contatos->proximo = NULL;
+		novo->anterior = NULL;
+		novo->proximo = NULL;
 
 		return novo;
 	}
@@ -184,7 +185,7 @@ contato *novo_contato(contato *contatos, contato *novo) {
 
 		for (atual = contatos; atual->proximo != NULL; atual = atual->proximo){}
 		atual->proximo = novo;
-		novo->anterior = atual;
+		novo->anterior = contatos;
 		novo->proximo = NULL;
 		printf("Nome: %s\n", contatos->nome);
 		return contatos;
@@ -196,9 +197,9 @@ void imprimi_contatos(contato *contatos){
 
 	int i=1;
 	for (atual = contatos; atual != NULL; atual = atual->proximo){
+		printf("Nome: %s\n", atual->nome);
 		printf("Contato %d\n", i);
 		printf("Telefone: %s\n", atual->telefone);
-		printf("Nome: %s\n", atual->nome);
 		printf("Endereço: %s\n", atual->endereco);
 		printf("CEP: %u\n", atual->cep);
 		printf("Data de Nascimento: %s\n", atual->nascimento);
