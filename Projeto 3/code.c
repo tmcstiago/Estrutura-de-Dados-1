@@ -17,14 +17,19 @@ typedef struct Pessoa contato;
 contato *lista_contatos_vazia();
 contato *leitura_inicial();
 contato *novo_contato(contato *contatos, contato *novo);
+void libera_contatos(contato *contatos);
 void imprimi_contatos(contato *contatos);
 
 int main () {
 	contato *contatos;
 	contato *novo;
+	contatos = lista_contatos_vazia();
 	contatos = leitura_inicial();
 	//imprimi_contatos(contatos);
-
+	libera_contatos(contatos);
+	imprimi_contatos(contatos);
+	if(contatos == NULL)
+		printf("LIBERADO\n");
 	int opcao;
 	do{
 		printf("********** Seja bem-vindo a sua lista de contatos **********\n\n");
@@ -111,7 +116,17 @@ int main () {
 contato *lista_contatos_vazia(){
 	return NULL;
 }
-
+void libera_contatos(contato *contatos){
+	contato *atual;
+	for (atual = contatos; atual != NULL; contatos = atual){
+		printf("liberando: %s\n", contatos->nome);
+		atual=atual->proximo;
+		contatos = NULL;
+		free(contatos);
+	}
+	if(contatos == NULL)
+		printf("LIBERADO\n");
+}	
 
 contato * leitura_inicial(){
 	FILE *arquivo;
@@ -132,6 +147,7 @@ contato * leitura_inicial(){
 		if(linha[0]=='$'){
 			i=0;
 			contatos = novo_contato(contatos, novo);
+			novo = (contato *) malloc( sizeof(contato));
 			continue;
 		}
 		if(i==0 && linha[0]==' ')
@@ -161,35 +177,35 @@ contato * leitura_inicial(){
 		i++;
 	}
 	fclose(arquivo);
-	free(novo);
 	return contatos;
 }
 
 contato *novo_contato(contato *contatos, contato *novo) {
-	contato *new;
-	new = (contato *) malloc(sizeof(contato));
-	if(new == NULL)
-		exit(-1);
-	strcpy(new->nome,novo->nome);
-	strcpy(new->telefone,novo->telefone);
-	strcpy(new->endereco,novo->endereco);
-	new->cep=novo->cep;
-	strcpy(new->nascimento,novo->nascimento);
 	if (contatos == NULL){
-		new->anterior = NULL;
-		new->proximo = NULL;
-		return new;
+		contatos = (contato *) malloc(sizeof(contato));
+
+		novo->anterior = NULL;
+		novo->proximo = NULL;
+
+		return novo;
 	}
 	else {
-		new->anterior = NULL;
-		new->proximo = contatos;
-		return new;
+		contato *atual;
+
+		for (atual = contatos; atual->proximo != NULL; atual = atual->proximo){}
+		contato *aux;
+		aux = (contato *) malloc(sizeof(contato));
+		aux=novo;
+		atual->proximo = aux;
+		aux->anterior = contatos;
+		aux->proximo = NULL;
+		//printf("Nome: %s\n", contatos->nome);
+		return contatos;
 	}
 }
 
 void imprimi_contatos(contato *contatos){
 	contato *atual;
-
 	int i=1;
 	for (atual = contatos; atual != NULL; atual = atual->proximo){
 		printf("Nome: %s\n", atual->nome);
