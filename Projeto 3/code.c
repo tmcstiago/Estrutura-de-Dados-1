@@ -20,12 +20,10 @@ contato *novo_contato(contato *contatos, contato *novo);
 void imprimi_contatos(contato *contatos);
 
 int main () {
-	leitura_inicial();
 	contato *contatos;
 	contato *novo;
-	contatos = lista_contatos_vazia();
-
-	//leitura_inicial();
+	contatos = leitura_inicial();
+	//imprimi_contatos(contatos);
 
 	int opcao;
 	do{
@@ -133,7 +131,6 @@ contato * leitura_inicial(){
 			exit (1);
 		if(linha[0]=='$'){
 			i=0;
-			printf("Nome: %s\n", novo->nome);
 			contatos = novo_contato(contatos, novo);
 			continue;
 		}
@@ -165,7 +162,6 @@ contato * leitura_inicial(){
 	}
 	fclose(arquivo);
 	free(novo);
-	imprimi_contatos(contatos);
 	return contatos;
 }
 
