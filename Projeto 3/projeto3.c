@@ -18,6 +18,7 @@ contato *lista_contatos_vazia();
 contato *leitura_inicial();
 contato *novo_contato(contato *contatos, contato *novo);
 void imprimi_contatos(contato *contatos);
+void busca_contato(contato *contatos, char *busca);
 
 int main () {
 
@@ -25,11 +26,15 @@ int main () {
 	contato *novo;
 	contatos = lista_contatos_vazia();
 
+	char busca[101];
+	char *ponto;
+
 	//leitura_inicial();
 
+	printf("********** Seja bem-vindo a sua lista de contatos **********\n\n");
+	
 	int opcao;
 	do{
-		printf("********** Seja bem-vindo a sua lista de contatos **********\n\n");
 		printf("1. Inserir novo contato\n");
 		printf("2. Remover contatos\n");
 		printf("3. Realizar busca de usuários\n");
@@ -37,8 +42,6 @@ int main () {
 		printf("5. Fechar a lista de contatos\n");
 		printf("Indique o número de uma das opções acima: ");
 		scanf ("%d", &opcao);
-		char lixo;
-		//scanf("%c", &lixo);
 
 		switch (opcao){
 			case 1:
@@ -86,6 +89,7 @@ int main () {
 
 				contatos = novo_contato(contatos, novo);
 
+				printf("\n\n");
 				//free (novo);
 			break;
 			case 2:
@@ -93,6 +97,12 @@ int main () {
 			break;
 			case 3:
 
+				printf("Insira o nome do cotato(s) que você deseja buscar\n");
+				scanf(" %[^\n]", busca);
+
+				ponto = busca;
+
+				busca_contato(contatos, busca);
 			break;
 			case 4:
 				imprimi_contatos(contatos);
@@ -173,8 +183,6 @@ contato * leitura_inicial(){
 
 contato *novo_contato(contato *contatos, contato *novo) {
 	if (contatos == NULL){
-		contatos = (contato *) malloc(sizeof(contato));
-
 		novo->anterior = NULL;
 		novo->proximo = NULL;
 
@@ -187,10 +195,10 @@ contato *novo_contato(contato *contatos, contato *novo) {
 		atual->proximo = novo;
 		novo->anterior = contatos;
 		novo->proximo = NULL;
-		printf("Nome: %s\n", contatos->nome);
 		return contatos;
 	}
 }
+
 
 void imprimi_contatos(contato *contatos){
 	contato *atual;
@@ -198,13 +206,54 @@ void imprimi_contatos(contato *contatos){
 	int i=1;
 	for (atual = contatos; atual != NULL; atual = atual->proximo){
 		printf("Nome: %s\n", atual->nome);
-		printf("Contato %d\n", i);
 		printf("Telefone: %s\n", atual->telefone);
 		printf("Endereço: %s\n", atual->endereco);
 		printf("CEP: %u\n", atual->cep);
 		printf("Data de Nascimento: %s\n", atual->nascimento);
-		printf("\n\n\n");
+		printf("\n");
 		i++;
 	}
+		printf("\n\n\n");
+
+}
+
+
+void busca_contato(contato *contatos, char *busca){
+	contato *atual;
+
+	int cont_loc = 0;
+	for(atual = contatos; atual != NULL; atual = atual->proximo){
+		int j = 0;
+		for(int i=0; atual->nome[i] != '\0'; i++){
+			if (*(busca+j)>= 97 && *(busca+j)<=122){
+				*(busca+j) = *(busca+j)-32;
+			}
+			if (*(busca+j) == '\0'){
+				if (cont_loc==0){
+					printf("\nContato(s) localizados:\n\n");
+				}
+				printf("Nome: %s\n", atual->nome);
+				printf("Telefone: %s\n", atual->telefone);
+				printf("Endereço: %s\n", atual->endereco);
+				printf("CEP: %u\n", atual->cep);
+				printf("Data de Nascimento: %s\n", atual->nascimento);
+				printf("\n");
+				cont_loc++;
+				break;
+			}
+			else {
+				if(atual->nome[i] == *(busca+j) || atual->nome[i] == *(busca+j)+32){
+					j++;
+				}
+				else {
+					j=0;
+				}
+			}
+		}
+	}
+	if (cont_loc==0){
+		printf("\nNenhum contato localizado\n");
+	}
+
 
 }
