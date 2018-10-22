@@ -208,18 +208,23 @@ contato *novo_contato(contato *contatos, contato *novo) {
 void imprimi_contatos(contato *contatos){
 	contato *atual;
 
-	int i=1;
-	for (atual = contatos; atual != NULL; atual = atual->proximo){
-		printf("Nome: %s\n", atual->nome);
-		printf("Telefone: %s\n", atual->telefone);
-		printf("Endereço: %s\n", atual->endereco);
-		printf("CEP: %u\n", atual->cep);
-		printf("Data de Nascimento: %s\n", atual->nascimento);
-		printf("\n");
-		i++;
+	if (contatos != NULL){
+		int i=1;
+		for (atual = contatos; atual != NULL; atual = atual->proximo){
+			printf("Nome: %s\n", atual->nome);
+			printf("Telefone: %s\n", atual->telefone);
+			printf("Endereço: %s\n", atual->endereco);
+			printf("CEP: %u\n", atual->cep);
+			printf("Data de Nascimento: %s\n", atual->nascimento);
+			printf("\n");
+			i++;
+		}
 	}
-		printf("\n\n\n");
-
+	else {
+		printf("Agenda Vazia!!\n" );
+	}
+	
+	printf("\n\n\n");
 }
 
 
