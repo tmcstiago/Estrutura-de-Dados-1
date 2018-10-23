@@ -485,7 +485,7 @@ int verificador_nascimento(contato *novo, char *t) {
 			if(*(t+j) == '/')
 				cont++;
 			else if(*(t+j) >= 48 && *(t+j) <= 57){
-				novo->telefone[i] = '/';
+				novo->nascimento[i] = '/';
 				i++;
 			}
 			else
@@ -496,7 +496,7 @@ int verificador_nascimento(contato *novo, char *t) {
 			else if (*(t+j) != '/' && cont==1)
 				return 0;
 			else if(*(t+j) >= 48 && *(t+j) <= 57){
-				novo->telefone[i] = '/';
+				novo->nascimento[i] = '/';
 				i++;
 			}
 			else
@@ -507,7 +507,7 @@ int verificador_nascimento(contato *novo, char *t) {
 			else
 				return 0;
 		}
-		novo->telefone[i] = *(t+j);
+		novo->nascimento[i] = *(t+j);
 	}
 	return 1;
 }
