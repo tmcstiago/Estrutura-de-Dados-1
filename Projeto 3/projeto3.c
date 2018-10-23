@@ -1,23 +1,3 @@
-projeto3.c
-
-Tipo
-C
-Tamanho
-8 KB (8.433 bytes)
-Armazenamento usado
-8 KB (8.433 bytes)
-Local
-Projeto 3
-Proprietário
-eu
-Modificado
-em 13:59 por mim
-Aberto
-em 19:49 por mim
-Criado em
-13:59 com o Google Drive Web
-Adicionar uma descrição
-Os leitores podem fazer o download
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +16,9 @@ typedef struct Pessoa contato;
 
 contato *lista_contatos_vazia();
 contato *leitura_inicial();
+void salvar_arquivo(contato *contatos); 
+contato * insertion_sort(contato *contatos); 
+void libera_contatos(contato *contatos); 
 contato *novo_contato(contato *contatos, contato *novo);
 void imprimi_contatos(contato *contatos);
 void busca_contato(contato *contatos, char *busca);
@@ -47,13 +30,9 @@ int main () {
 
 	contato *contatos;
 	contato *novo;
-	contatos = lista_contatos_vazia();
-
+	contatos = leitura_inicial();
 	char busca[101];
 	char *ponto;
-
-	//leitura_inicial();
-
 	printf("********** Seja bem-vindo a sua lista de contatos **********\n\n");
 	
 	int opcao;
@@ -154,6 +133,7 @@ int main () {
 				busca_contato(contatos, busca);
 			break;
 			case 4:
+				contatos = insertion_sort(contatos);
 				imprimi_contatos(contatos);
 
 			break;
@@ -162,8 +142,9 @@ int main () {
 		}
 
 	} while (opcao != 5);
-
-
+	contatos = insertion_sort(contatos);
+	salvar_arquivo(contatos);
+	libera_contatos(contatos);
 
 	return 0;
 }
@@ -174,59 +155,139 @@ contato *lista_contatos_vazia(){
 }
 
 
+void libera_contatos(contato *contatos){
+	contato *atual;
+	for (atual = contatos; atual != NULL; contatos = atual){
+		//printf("liberando: %s\n", contatos->nome);
+		atual=atual->proximo;
+		free(contatos);
+		contatos = NULL;
+	}
+	//if(contatos == NULL)
+		//printf("LIBERADO\n");
+}
+contato * insertion_sort(contato *contatos){
+	contato *escolhido;
+	contato *temp;
+	//temp = (contato *) malloc(sizeof(contato));
+	if(temp==NULL) exit(-1);
+	int i=1;
+	for (;;i++){
+		//imprimi_contatos(contatos);
+		int need_swap=0; //determina se é necessário ou nao trocar elementos
+		int j = i - 1;
+		int k=i;
+		for(escolhido=contatos; k ; k--, escolhido = escolhido->proximo){
+			if(escolhido->proximo == NULL){
+				return contatos;
+			}
+		};	
+		temp=escolhido->anterior;
+		if(escolhido->proximo!=NULL){
+			escolhido->proximo->anterior=temp;
+			temp->proximo=escolhido->proximo;
+		}
+		else{
+			temp->proximo=NULL;
+		}
+		//imprimi_contatos(contatos);
+		while ((j >= 0) && (strcmp(temp->nome, escolhido->nome))>=0){
+			temp=temp->anterior;
+			j--;
+		}
+		if(temp==NULL){
+			escolhido->proximo=contatos;
+			escolhido->anterior=NULL;
+			contatos->anterior=escolhido;
+			contatos=escolhido;
+			
+		}
+		else if(temp->proximo==NULL){
+			escolhido->proximo=NULL;
+			escolhido->anterior=temp;
+			temp->proximo=escolhido;
+		}
+		else{
+			escolhido->proximo=temp->proximo;
+			escolhido->anterior=temp;
+			escolhido->proximo->anterior=escolhido;
+			temp->proximo=escolhido;
+			
+		}
+		//imprimi_contatos(contatos);
+		//getchar();
+	}
+}
+void salvar_arquivo(contato *contatos){
+	FILE *arquivo;
+	arquivo = fopen("contatos.txt", "w");
+	if (arquivo == NULL){
+		printf("Erro na abertura do arquivo!");
+		exit(-1);
+	}
+	contato *atual;
+	for (atual = contatos; atual != NULL; atual = atual->proximo){
+		fprintf(arquivo, "%s\n", atual->nome);
+		fprintf(arquivo, "%s\n", atual->telefone);
+		fprintf(arquivo, "%s\n", atual->endereco);
+		fprintf(arquivo, "%u\n", atual->cep);
+		fprintf(arquivo, "%s\n", atual->nascimento);
+		fprintf(arquivo, "$\n");
+	}	
+}
 contato * leitura_inicial(){
 	FILE *arquivo;
 	arquivo = fopen("contatos.txt", "r");
 	if (arquivo == NULL){
-		printf("Problema na Leitura dos arquivos\n");
-		exit(1);
+		return NULL;
 	}
 	char linha[500];
-	contato aux;
 	int i=0;
+	contato *contatos;
+	contatos = lista_contatos_vazia();
+	contato *novo;
+	novo = (contato *) malloc(sizeof(contato));
+	if(novo==NULL) exit(-1);
+
 	while(fscanf(arquivo,"%[^\n]s", linha)!=EOF){
 		fscanf(arquivo,"%*c");
-
+		if (novo == NULL)
+			exit (1);
 		if(linha[0]=='$'){
-			printf("==============================================================\n");
 			i=0;
+			contatos = novo_contato(contatos, novo);
+			novo = (contato *) malloc( sizeof(contato));
+			if(novo==NULL) exit(-1);
 			continue;
 		}
 		if(i==0 && linha[0]==' ')
-			return;
+			break;
 
 		switch(i){
 			case 0:
-				strcpy(aux.nome,linha);
-				printf("%s\n", aux.nome);
+				strcpy(novo->nome,linha);
 			break;
 
 			case 1:
-				strcpy(aux.telefone,linha);
-				printf("%s\n", aux.telefone);
+				strcpy(novo->telefone,linha);
 			break;
 
 			case 2:
-				strcpy(aux.endereco,linha);
-				printf("%s\n", aux.endereco);
+				strcpy(novo->endereco,linha);
 			break;
 
 			case 3:
-				strcpy(aux.cep,linha);
-				printf("%s\n", aux.cep);
+				sscanf(linha, "%u", &novo->cep);
 			break;
 
 			case 4:
-				strcpy(aux.nascimento,linha);
-				printf("%s\n", aux.nascimento);
-			break;
-
-			case 5:
+				strcpy(novo->nascimento,linha);
 			break;
 		}
 		i++;
 	}
 	fclose(arquivo);
+	return contatos;
 }
 
 
