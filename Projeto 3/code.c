@@ -20,12 +20,15 @@ contato *novo_contato(contato *contatos, contato *novo);
 void libera_contatos(contato *contatos);
 void imprimi_contatos(contato *contatos);
 void salvar_arquivo(contato *contatos);
+void copy(contato* A, contato* B);
+contato * insertion_sort(contato *contatos);
 
 int main () {
 	contato *contatos;
 	contato *novo;
 	contatos = lista_contatos_vazia();
 	contatos = leitura_inicial();
+	contatos = insertion_sort(contatos);
 	//imprimi_contatos(contatos);
 	int opcao;
 	do{
@@ -87,6 +90,7 @@ int main () {
 				printf("Data de Nascimento: %s\n", novo->nascimento);
 				getchar();
 				contatos = novo_contato(contatos, novo);
+				insertion_sort(contatos);
 				printf("Cadastro realizado com sucesso!\n");
 				printf("Aperte enter para continuar:");
 				getchar();
@@ -99,6 +103,7 @@ int main () {
 
 			break;
 			case 4:
+				contatos = insertion_sort(contatos);
 				imprimi_contatos(contatos);
 				printf("Aperte enter para continuar:");
 				getchar();
@@ -109,6 +114,7 @@ int main () {
 		}
 
 	} while (opcao != 5);
+	insertion_sort(contatos);
 	salvar_arquivo(contatos);
 	libera_contatos(contatos);
 
@@ -130,6 +136,86 @@ void libera_contatos(contato *contatos){
 	}
 	//if(contatos == NULL)
 		//printf("LIBERADO\n");
+}
+contato * insertion_sort(contato *contatos){
+	contato *escolhido;
+	contato *temp;
+	//temp = (contato *) malloc(sizeof(contato));
+	if(temp==NULL) exit(-1);
+	int i=1;
+	for (;;i++){
+		//imprimi_contatos(contatos);
+		int need_swap=0; //determina se é necessário ou nao trocar elementos
+		int j = i - 1;
+		int k=i;
+		for(escolhido=contatos; k ; k--, escolhido = escolhido->proximo){
+			if(escolhido->proximo == NULL){
+				return contatos;
+			}
+		};	
+		temp=escolhido->anterior;
+		if(escolhido->proximo!=NULL){
+			escolhido->proximo->anterior=temp;
+			temp->proximo=escolhido->proximo;
+		}
+		else{
+			temp->proximo=NULL;
+		}
+		//imprimi_contatos(contatos);
+		while ((j >= 0) && (strcmp(temp->nome, escolhido->nome))>=0){
+			temp=temp->anterior;
+			j--;
+		}
+		if(temp==NULL){
+			escolhido->proximo=contatos;
+			escolhido->anterior=NULL;
+			contatos->anterior=escolhido;
+			contatos=escolhido;
+			
+		}
+		else if(temp->proximo==NULL){
+			escolhido->proximo=NULL;
+			escolhido->anterior=temp;
+			temp->proximo=escolhido;
+		}
+		else{
+			escolhido->proximo=temp->proximo;
+			escolhido->anterior=temp;
+			escolhido->proximo->anterior=escolhido;
+			temp->proximo=escolhido;
+			
+		}
+		//imprimi_contatos(contatos);
+		//getchar();
+	}
+}
+void copy(contato* A, contato* B){
+	contato* temp;
+	temp = (contato *) malloc(sizeof(contato));
+	if(temp==NULL) exit(-1);
+
+	//strcpy(temp->nome,A->nome);
+	strcpy(A->nome,B->nome);
+	//strcpy(B->nome,temp->nome);
+	
+	//strcpy(temp->telefone,A->telefone);
+	strcpy(A->telefone,B->telefone);
+	//strcpy(B->telefone,temp->telefone);
+
+	//strcpy(temp->endereco,A->endereco);
+	strcpy(A->endereco,B->endereco);
+	//strcpy(B->endereco,temp->endereco);
+
+	//temp->cep=A->cep;
+	A->cep=B->cep;
+	//B->cep=temp->cep;
+
+	//strcpy(temp->nascimento,A->nascimento);
+	strcpy(A->nascimento,B->nascimento);
+	A->anterior=B->anterior;
+	A->proximo=B->proximo;
+	//strcpy(B->nascimento,temp->nascimento);
+	free(temp);
 }	
 void salvar_arquivo(contato *contatos){
 	FILE *arquivo;
@@ -146,8 +232,7 @@ void salvar_arquivo(contato *contatos){
 		fprintf(arquivo, "%u\n", atual->cep);
 		fprintf(arquivo, "%s\n", atual->nascimento);
 		fprintf(arquivo, "$\n");
-	}
-	
+	}	
 }
 contato * leitura_inicial(){
 	FILE *arquivo;
@@ -161,6 +246,8 @@ contato * leitura_inicial(){
 	contatos = lista_contatos_vazia();
 	contato *novo;
 	novo = (contato *) malloc(sizeof(contato));
+	if(novo==NULL) exit(-1);
+
 	while(fscanf(arquivo,"%[^\n]s", linha)!=EOF){
 		fscanf(arquivo,"%*c");
 		if (novo == NULL)
@@ -169,6 +256,7 @@ contato * leitura_inicial(){
 			i=0;
 			contatos = novo_contato(contatos, novo);
 			novo = (contato *) malloc( sizeof(contato));
+			if(novo==NULL) exit(-1);
 			continue;
 		}
 		if(i==0 && linha[0]==' ')
@@ -204,7 +292,7 @@ contato * leitura_inicial(){
 contato *novo_contato(contato *contatos, contato *novo) {
 	if (contatos == NULL){
 		contatos = (contato *) malloc(sizeof(contato));
-
+		if(contatos==NULL) exit(-1);
 		novo->anterior = NULL;
 		novo->proximo = NULL;
 
@@ -213,13 +301,10 @@ contato *novo_contato(contato *contatos, contato *novo) {
 	else {
 		contato *atual;
 
-		for (atual = contatos; atual->proximo != NULL; atual = atual->proximo){}
-		contato *aux;
-		aux = (contato *) malloc(sizeof(contato));
-		aux=novo;
-		atual->proximo = aux;
-		aux->anterior = contatos;
-		aux->proximo = NULL;
+		for (atual = contatos; atual->proximo != NULL; atual = atual->proximo);
+		atual->proximo = novo;
+		novo->anterior = contatos;
+		novo->proximo = NULL;
 		//printf("Nome: %s\n", contatos->nome);
 		return contatos;
 	}
@@ -240,3 +325,4 @@ void imprimi_contatos(contato *contatos){
 	}
 
 }
+
