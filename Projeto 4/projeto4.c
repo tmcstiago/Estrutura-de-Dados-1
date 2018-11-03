@@ -34,7 +34,7 @@ Fila *iniciar_fila();
 void novo_voo(Fila *voos, Lista *novo);
 
 void mensagem_inicial(int Naproximacoes, int Ndecolagens);
-void mensagem_voo(int hora, int min, int ut, int pista, Lista *voo);
+void mensagem_voo(int ut, int pista, Lista *voo);
 void verificando_pistas(Pista *pista1, Pista *pista2, Pista *pista3);
 void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut);
 void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut);
@@ -66,7 +66,7 @@ int main () {
 	Pista *pista2 = NULL;
 	Pista *pista3 = NULL;
 
-	mensagem_inicial(hora, min, Naproximacoes, Ndecolagens);
+	mensagem_inicial(Naproximacoes, Ndecolagens);
 
 	for (int ut = 1; 1; ++ut) { // ut = unidade de tempo = 5 min
 		scanf("%d", &min); //scanf para ter ponto de parada, pode excluir
@@ -75,10 +75,10 @@ int main () {
 		verificando_pistas(pista1, pista2, pista3);
 
 		//verificando se tem algum voo com combustivel=0
-		voos_prioritarios(voos, pista1, pista2, pista3);
+		voos_prioritarios(voos, pista1, pista2, pista3, ut);
 
 		//continuando sequencia de voos
-		voos_sequencia(voos, pista1, pista2, pista3);
+		voos_sequencia(voos, pista1, pista2, pista3, ut);
 
 		//diminuindo o combustivel dos avioes
 		if (min%10 == 0) {
@@ -117,7 +117,7 @@ void novo_voo(Fila *voos, Lista *novo){
 }
 
 
-void mensagem_inicial(int hora, int min, int Naproximacoes, int Ndecolagens) {
+void mensagem_inicial(int Naproximacoes, int Ndecolagens) {
 	printf("---------------------------------------------------------------------------------\n");
 	printf("“Aeroporto Internacional de Brasília”\n");
 	printf("Hora Inicial: %02d:%02d\n", hora, min);
@@ -131,8 +131,8 @@ void mensagem_inicial(int hora, int min, int Naproximacoes, int Ndecolagens) {
 
 
 void mensagem_voo(int ut, int pista, Lista *voo){
-	int min_voo += (ut*5)%60;
-	int hora_voo += (ut *5)/60;
+	int minu_voo = min + (ut*5)%60;
+	int hora_voo = hora + (ut *5)/60;
 	hora_voo = hora_voo/24;
 
 	printf("\nCódigo do voo: %s\n", voo->codigo);
@@ -140,7 +140,7 @@ void mensagem_voo(int ut, int pista, Lista *voo){
 		printf("Status: Aeronave Decolou\n");
 	else
 		printf("Status: Aeronave pousou\n");
-	printf("Horário do início do procedimento: %02d:%02d\n", hora_voo, min_voo);
+	printf("Horário do início do procedimento: %02d:%02d\n", hora_voo, minu_voo);
 	printf("Numero da Pista: %d\n", pista);
 }
 
@@ -227,7 +227,7 @@ void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, 
 
 			if (comb0 == 3)
 				printf("ALERTA GERAL DE DESVIO DE AERONAVE\n");
-			
+
 			if (pista1 == NULL) {
 				pista1 = (Pista *) malloc(sizeof(Pista));
 
@@ -237,7 +237,7 @@ void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, 
 				pista1->tempo_apx = 1;
 				pista1->tempo_pouso = 3;
 
-				mensagem_voo(ut, 1, Lista *voo);
+				mensagem_voo(ut, 1, atual);
 			}
 			else if (pista2 == NULL) {
 				pista2 = (Pista *) malloc(sizeof(Pista));
@@ -248,7 +248,7 @@ void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, 
 				pista2->tempo_apx = 1;
 				pista2->tempo_pouso = 3;
 
-				mensagem_voo(ut, 2, Lista *voo);
+				mensagem_voo(ut, 2, atual);
 			}
 			else if (pista3 == NULL && comb0>=3) {
 				pista3 = (Pista *) malloc(sizeof(Pista));
@@ -259,7 +259,7 @@ void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, 
 				pista3->tempo_apx = 1;
 				pista3->tempo_pouso = 3;
 
-				mensagem_voo(ut, 3, Lista *voo);
+				mensagem_voo(ut, 3, atual);
 			}
 
 			//atualizando a Fila de voos
@@ -302,7 +302,7 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 				pista3->combustivel = atual->combustivel;
 				pista3->tempo_decolagem = 2;
 
-				mensagem_voo(ut, 3, Lista *voo);
+				mensagem_voo(ut, 3, atual);
 			}
 			else if(pista1 == NULL){
 				pista1 = (Pista *) malloc(sizeof(Pista));
@@ -312,7 +312,7 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 				pista1->combustivel = atual->combustivel;
 				pista1->tempo_decolagem = 2;
 
-				mensagem_voo(ut, 1, Lista *voo);
+				mensagem_voo(ut, 1, atual);
 			}
 			else if(pista2 == NULL){
 				pista2 = (Pista *) malloc(sizeof(Pista));
@@ -322,7 +322,7 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 				pista2->combustivel = atual->combustivel;
 				pista2->tempo_decolagem = 2;
 
-				mensagem_voo(ut, 2, Lista *voo);
+				mensagem_voo(ut, 2, atual);
 			}
 		}
 		else {
@@ -334,7 +334,7 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 				pista1->combustivel = atual->combustivel;
 				pista1->tempo_decolagem = 2;
 
-				mensagem_voo(ut, 1, Lista *voo);
+				mensagem_voo(ut, 1, atual);
 			}
 			else if(pista2 == NULL){
 				pista2 = (Pista *) malloc(sizeof(Pista));
@@ -344,7 +344,7 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 				pista2->combustivel = atual->combustivel;
 				pista2->tempo_decolagem = 2;
 
-				mensagem_voo(ut, 2, Lista *voo);
+				mensagem_voo(ut, 2, atual);
 			}
 		}
 		Lista *excluir;
@@ -352,7 +352,7 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 
 		voos->inicio = atual->proximo;
 		if (voos->fim == atual)
-			voos->fim = NULL
+			voos->fim = NULL;
 
 		aux->proximo = atual->proximo;
 
