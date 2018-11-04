@@ -31,6 +31,7 @@ int min = 0;
 
 Fila *iniciar_fila();
 void novo_voo(Fila *voos, Lista *novo);
+Lista * pop(Fila *);
 
 void mensagem_inicial(int Naproximacoes, int Ndecolagens);
 void mensagem_voo(int ut, int pista, Lista *voo);
@@ -39,7 +40,7 @@ void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, 
 void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut);
 void altecao_combustivel(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3);
 int random_number(int start, int end);
-void data_generate();
+void data_generate(Fila *);
 
 int main () {
 	//Comando usado para que números gerados dentro do programa sejam aleatórios 
@@ -50,6 +51,17 @@ int main () {
 	Fila *voos = iniciar_fila();  // criando a cabeça da fila
 	
 	data_generate(voos);
+	Lista * atual;
+	atual = pop(voos);
+	for(int i=1; atual!=NULL; i++, atual = pop(voos)){
+		if(atual->modo=='A'){
+			printf("Vôo %02d\nCódigo:%s\nModo:%c\nCombustível:%d\n\n", i, atual->codigo, atual->modo, atual->combustivel);
+		}
+		else{
+			printf("Vôo %02d\nCódigo:%s\nModo:%c\n\n", i, atual->codigo, atual->modo);
+		}	
+	}
+	voos = iniciar_fila();
 	// estas variaveis devem ser globais
 	int Naproximacoes;
 	int Ndecolagens;
@@ -145,6 +157,7 @@ void data_generate(Fila *voos){
 Fila *iniciar_fila(){
 	Fila *f;
 	f = (Fila *) malloc(sizeof(Fila));
+	if(f==NULL)exit(0);
 
 	f->inicio = NULL;
 	f->fim = NULL;
@@ -152,37 +165,71 @@ Fila *iniciar_fila(){
 	return f;
 }
 
+Lista * pop(Fila *voos){
+	Lista * aux;
+	//Fila não vazia
+	if(voos->inicio != NULL){
+		aux = voos->inicio;
+		//Fila com 2 ou mais elementos
+		if(voos->inicio != voos->fim){
+			voos->inicio=voos->inicio->proximo;
+		}
+		//Fila com 1 elementro
+		else{
+			voos->inicio=NULL;
+			voos->fim=NULL;
+		}
+		return aux;	
+	}
+	//Fila vazia
+	else{
+		return NULL;
+	}	
+}
 
 void novo_voo(Fila *voos, Lista *novo){
 	novo->proximo=NULL;
 	if (voos->inicio == NULL){
-		voos->inicio == novo;
-		voos->fim == novo;
+		//printf("Nenhum voo, Adicionando voo %s\n\n", novo->codigo);
+		voos->inicio = novo;
+		voos->fim = novo;
 	}
 	else {
+		//printf("Já possui voos, Adicionando voo %s\n", novo->codigo);
 		//Voo com prioridade
 		if(novo->modo == 'A'){
-			Lista *atual;
-			//Caso o primeiro da fila não seja prioridade
-			if(voos->inicio->modo!='A'){
+			//printf("Voo com prioridade, ");
+				
+			//Caso o novo tenha menos prioridade que toda a fila
+			if(voos->fim->modo == 'A' && (voos->fim->combustivel)<(novo->combustivel)){
+				//printf("Menos prioridade que toda a fila");
+				voos->fim->proximo=novo;
+				voos->fim = novo;
+			}
+			//Caso o novo tenha mais prioridade que o primeiro voo
+			else if((voos->inicio->modo!='A') || (voos->inicio->combustivel)>(novo->combustivel)){
+				//printf("Mais prioridade que toda fila");
 				novo->proximo=voos->inicio;
 				voos->inicio=novo;
-			}	
-			//Caso contrario
-			else{
-				//Percorre fila até encontrar lugar certo
-				for(atual=voos->inicio; atual->proximo->modo!='A' || 
-				(novo->combustivel)>(atual->combustivel); atual=atual->proximo){
-					novo->proximo=atual->proximo;
-					atual->proximo=novo;
-				}
 			}
-
-
+			//Caso contrário
+			else{
+				//printf("Encaixando no meio da fila");	
+				Lista * atual;
+				atual=voos->inicio;	
+				//Percorre fila até encontrar lugar certo
+				for(;atual->proximo->modo=='A' && (novo->combustivel)>(atual->proximo->combustivel); 
+					atual=atual->proximo);
+		
+				novo->proximo=atual->proximo;
+				atual->proximo=novo;	
+			}	
+			//printf("\n\n");
 				
 		}
 		//Voo sem prioridade
 		else{
+			//printf("Voo sem prioridade\n\n");
 			voos->fim->proximo = novo;
 			voos->fim = novo;
 		}
