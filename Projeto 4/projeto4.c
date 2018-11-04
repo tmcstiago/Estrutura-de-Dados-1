@@ -44,13 +44,12 @@ void data_generate();
 int main () {
 	//Comando usado para que números gerados dentro do programa sejam aleatórios 
 	srand(time(NULL)); 
-
-	data_generate();
 	
 	aux = (Lista *) malloc(sizeof(Lista));
 
 	Fila *voos = iniciar_fila();  // criando a cabeça da fila
 	
+	data_generate(voos);
 	// estas variaveis devem ser globais
 	int Naproximacoes;
 	int Ndecolagens;
@@ -102,18 +101,45 @@ int random_number(int start, int end){
 	number = rand()%(diff+1)+start;
 	return number;
 }
-void data_generate(){
+void data_generate(Fila *voos){
 	int n_voos, n_aproximacoes, n_decolagens;
 	n_voos = random_number(20, 64);
 	n_aproximacoes = random_number(10, n_voos);
 	n_decolagens = n_voos - n_aproximacoes;
-	int comb_a[n_aproximacoes];
 	printf("n_voos:%d,\nn_aproximacoes:%d,\nn_decolagens:%d\n", n_voos, n_aproximacoes, n_decolagens);
-	for(int i=1; i<=n_aproximacoes; i++){
-		comb_a[i]=random_number(0,12);
-		printf("comb_a[%d]:%d,\n", i, comb_a[i]);
-	}
 
+	char *codigos[] = {
+		"VG3001", "JJ4404", "LN7001", "TG1501", "GL7602", "TT1010", "AZ1009", "AZ1008", 
+		"AZ1010", "TG1506", "VG3002", "JJ4402", "GL7603", "RL7880", "AL0012", "TT4544", 
+		"TG1505", "VG3003", "JJ4403", "JJ4401", "LN7002", "AZ1002", "AZ1007", "GL7604", 
+		"AZ1006", "TG1503", "AZ1003", "JJ4403", "AZ1001", "LN7003", "AZ1004", "TG1504", 
+		"AZ1005", "TG1502", "GL7601", "TT4500", "RL7801", "JJ4410", "GL7607", "AL0029", 
+		"VV3390", "VV3392", "GF4681", "GF4690", "AZ1020", "JJ4435", "VG3010", "LF0920", 
+		"AZ1065", "LF0978", "RL7867", "TT4502", "GL7645", "LF0932", "JJ4434", "TG1510", 
+		"TT1020", "AZ1098", "BA2312", "VG3030", "BA2304", "KL5609", "KL5610", "KL5611"
+	};
+	
+	Lista *f;
+
+	for(int i=1; i<=n_aproximacoes; i++){
+		f = (Lista *) malloc(sizeof(Lista));
+		if(f==NULL)exit(0);
+
+		strcpy(f->codigo, codigos[i]);
+		f->modo='A';
+		f->combustivel=random_number(0,12);
+		//printf("Vôo %02d\nCódigo:%s\nModo:%c\nCombustível:%d\n", i, f->codigo, f->modo, f->combustivel);
+		novo_voo(voos, f);
+	}
+	for(int i=n_aproximacoes+1; i<=n_voos; i++){
+		f = (Lista *) malloc(sizeof(Lista));
+		if(f==NULL)exit(0);
+
+		strcpy(f->codigo, codigos[i]);
+		f->modo='D';
+		//printf("Vôo %02d\nCódigo:%s\nModo:%c\n", i, f->codigo, f->modo);
+		novo_voo(voos, f);
+	}
 }
 
 Fila *iniciar_fila(){
@@ -128,20 +154,48 @@ Fila *iniciar_fila(){
 
 
 void novo_voo(Fila *voos, Lista *novo){
+	novo->proximo=NULL;
 	if (voos->inicio == NULL){
 		voos->inicio == novo;
 		voos->fim == novo;
 	}
 	else {
-		voos->fim->proximo = novo;
-		voos->fim = novo;
+		//Voo com prioridade
+		if(novo->modo == 'A'){
+			Lista *atual;
+			//Caso o primeiro da fila não seja prioridade
+			if(voos->inicio->modo!='A'){
+				novo->proximo=voos->inicio;
+				voos->inicio=novo;
+			}	
+			//Caso contrario
+			else{
+				//Percorre fila até encontrar lugar certo
+				for(atual=voos->inicio; atual->proximo->modo!='A' || 
+				(novo->combustivel)>(atual->combustivel); atual=atual->proximo){
+					novo->proximo=atual->proximo;
+					atual->proximo=novo;
+				}
+			}
+
+
+				
+		}
+		//Voo sem prioridade
+		else{
+			voos->fim->proximo = novo;
+			voos->fim = novo;
+		}
+
+
+		
 	}
 }
 
 
 void mensagem_inicial(int Naproximacoes, int Ndecolagens) {
 	printf("---------------------------------------------------------------------------------\n");
-	printf("“Aeroporto Internacional de Brasília”\n");
+	printf("Aeroporto Internacional de Brasília\n");
 	printf("Hora Inicial: %02d:%02d\n", hora, min);
 	printf("Fila de Pedidos:\n"); //verificar qual texto complementar deve ser colocado
 	printf("NVoos: %d\n", Naproximacoes + Ndecolagens);
@@ -408,7 +462,7 @@ void altecao_combustivel(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3
 				}
 			}
 
-			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR”\n", excluir->codigo);
+			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n", excluir->codigo);
 			free(excluir);
 		}
 	}
@@ -417,7 +471,7 @@ void altecao_combustivel(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3
 		pista1->combustivel --;
 
 		if (pista1->combustivel < 0){
-			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR”\n", pista1->codigo);
+			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n", pista1->codigo);
 
 			free(pista1);
 			pista1 = NULL;
@@ -427,7 +481,7 @@ void altecao_combustivel(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3
 		pista2->combustivel --;
 
 		if (pista2->combustivel < 0){
-			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR”\n", pista2->codigo);
+			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n", pista2->codigo);
 
 			free(pista2);
 			pista2 = NULL;
@@ -437,7 +491,7 @@ void altecao_combustivel(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3
 		pista3->combustivel --;
 
 		if (pista3->combustivel < 0){
-			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR”\n", pista3->codigo);
+			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n", pista3->codigo);
 
 			free(pista3);
 			pista3 = NULL;
