@@ -4,7 +4,7 @@
 #include <time.h>
 
 typedef struct lista {
-	char codigo[7];
+	char codigo[10];
 	char modo;
 	int combustivel;
 	struct lista *proximo;
@@ -16,7 +16,7 @@ typedef struct fila {
 } Fila;
 
 typedef struct pista {
-	char codigo[7];
+	char codigo[10];
 	char modo;
 	int combustivel;
 	int tempo_apx;
@@ -31,7 +31,10 @@ int min = 0;
 
 Fila *iniciar_fila();
 void novo_voo(Fila *voos, Lista *novo);
+//Retorna um voo da fila
 Lista * pop(Fila *);
+//Retorna da fila um voo de decolagem
+Lista * pop_d(Fila *voos);
 
 void mensagem_inicial(int Naproximacoes, int Ndecolagens);
 void mensagem_voo(int ut, int pista, Lista *voo);
@@ -40,47 +43,32 @@ void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, 
 void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut);
 void altecao_combustivel(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3);
 int random_number(int start, int end);
-void data_generate(Fila *);
+void data_generate(Fila *voos, int * n_voos,int * n_aproximacoes, int *n_decolagens);
 
 int main () {
 	//Comando usado para que números gerados dentro do programa sejam aleatórios 
 	srand(time(NULL)); 
 	
 	aux = (Lista *) malloc(sizeof(Lista));
+	if(aux == NULL)
+	{
+		printf("Alocação falhou");
+		exit(-1);
+	}
+
 
 	Fila *voos = iniciar_fila();  // criando a cabeça da fila
-	
-	data_generate(voos);
-	Lista * atual;
-	atual = pop(voos);
-	for(int i=1; atual!=NULL; i++, atual = pop(voos)){
-		if(atual->modo=='A'){
-			printf("Vôo %02d\nCódigo:%s\nModo:%c\nCombustível:%d\n\n", i, atual->codigo, atual->modo, atual->combustivel);
-		}
-		else{
-			printf("Vôo %02d\nCódigo:%s\nModo:%c\n\n", i, atual->codigo, atual->modo);
-		}	
-	}
-	voos = iniciar_fila();
-	// estas variaveis devem ser globais
-	int Naproximacoes;
-	int Ndecolagens;
+	int n_voos;
+	int n_aproximacoes;
+	int n_decolagens;
 
-	// função para gerar os voos e o combustível
-	
-	// utilize a função novo_voo(*Fila, * Lista) para criar novo voo, sendo Fila = voos e Lista obj criado
-		// lembre que voce ja deve mandar o dado definido igual no projeto anterior
-			// observação: ao chamar a função, o Lista ->proximo já deve ser igual a NULL
+	data_generate(voos, &n_voos, &n_aproximacoes, &n_decolagens);
 
-
-
-
-	// pistas de pouso e decolagem
 	Pista *pista1 = NULL;
 	Pista *pista2 = NULL;
 	Pista *pista3 = NULL;
 
-	mensagem_inicial(Naproximacoes, Ndecolagens);
+	mensagem_inicial(n_aproximacoes, n_decolagens);
 
 	for (int ut = 1; 1; ++ut) { // ut = unidade de tempo = 5 min
 		scanf("%d", &min); //scanf para ter ponto de parada, pode excluir
@@ -113,12 +101,16 @@ int random_number(int start, int end){
 	number = rand()%(diff+1)+start;
 	return number;
 }
-void data_generate(Fila *voos){
-	int n_voos, n_aproximacoes, n_decolagens;
-	n_voos = random_number(20, 64);
-	n_aproximacoes = random_number(10, n_voos);
-	n_decolagens = n_voos - n_aproximacoes;
-	printf("n_voos:%d,\nn_aproximacoes:%d,\nn_decolagens:%d\n", n_voos, n_aproximacoes, n_decolagens);
+void data_generate(Fila *voos, int *n_voos, int *n_aproximacoes, int *n_decolagens){
+
+	(*n_voos) = random_number(20, 64);
+	(*n_aproximacoes) = random_number(10, (*n_voos)-10);
+	(*n_decolagens) = (*n_voos) - (*n_aproximacoes);
+
+	//(*n_voos) = 42;
+	//(*n_aproximacoes) = 12;
+	//(*n_decolagens) = 40;
+	//printf("n_voos:%d,\nn_aproximacoes:%d,\nn_decolagens:%d\n", (*n_voos), (*n_aproximacoes), (*n_decolagens));
 
 	char *codigos[] = {
 		"VG3001", "JJ4404", "LN7001", "TG1501", "GL7602", "TT1010", "AZ1009", "AZ1008", 
@@ -128,43 +120,83 @@ void data_generate(Fila *voos){
 		"AZ1005", "TG1502", "GL7601", "TT4500", "RL7801", "JJ4410", "GL7607", "AL0029", 
 		"VV3390", "VV3392", "GF4681", "GF4690", "AZ1020", "JJ4435", "VG3010", "LF0920", 
 		"AZ1065", "LF0978", "RL7867", "TT4502", "GL7645", "LF0932", "JJ4434", "TG1510", 
-		"TT1020", "AZ1098", "BA2312", "VG3030", "BA2304", "KL5609", "KL5610", "KL5611"
+		"TT1020", "AZ1098", "BA2312", "VG3030", "BA2304", "KL5609", "KL5610", "KL5611",
 	};
 	
 	Lista *f;
 
-	for(int i=1; i<=n_aproximacoes; i++){
+	for(int i=0; i<=(*n_aproximacoes); i++){
 		f = (Lista *) malloc(sizeof(Lista));
-		if(f==NULL)exit(0);
-
+		if(f==NULL){
+			printf("Alocação falhou");
+			exit(-1);
+		}
 		strcpy(f->codigo, codigos[i]);
 		f->modo='A';
 		f->combustivel=random_number(0,12);
-		//printf("Vôo %02d\nCódigo:%s\nModo:%c\nCombustível:%d\n", i, f->codigo, f->modo, f->combustivel);
+		//printf("Vôo %02d\nCódigo:%s\nModo:%c\nCombustível:%d\n", i+1, f->codigo, f->modo, f->combustivel);
 		novo_voo(voos, f);
 	}
-	for(int i=n_aproximacoes+1; i<=n_voos; i++){
+	for(int i=(*n_aproximacoes)+1; i<(*n_voos); i++){
 		f = (Lista *) malloc(sizeof(Lista));
-		if(f==NULL)exit(0);
-
+		if(f==NULL){
+			printf("Alocação falhou");
+			exit(-1);
+		}
 		strcpy(f->codigo, codigos[i]);
 		f->modo='D';
-		//printf("Vôo %02d\nCódigo:%s\nModo:%c\n", i, f->codigo, f->modo);
+		//printf("Vôo %02d\nCódigo:%s\nModo:%c\n", i+1, f->codigo, f->modo);
 		novo_voo(voos, f);
 	}
+	//printf("Fim da função generate\n");
 }
 
 Fila *iniciar_fila(){
 	Fila *f;
 	f = (Fila *) malloc(sizeof(Fila));
-	if(f==NULL)exit(0);
+	if(f==NULL){
+		printf("Alocação falhou");
+		exit(-1);
+	}
 
 	f->inicio = NULL;
 	f->fim = NULL;
 
 	return f;
 }
+Lista * pop_d(Fila *voos){
+	//Caso o primeiro da fila seja do tipo D
+	if(voos->inicio->modo=='D'){
+		return pop(voos);
+	}
 
+	//Fila não vazia que contem pelo menos 1 voo do tipo 'D'
+	if(voos->fim != NULL && voos->fim->modo=='D'){
+		//printf("voos->fim->modo:%c\n", voos->fim->modo);
+		Lista * atual;
+		Lista * aux;
+		atual=voos->inicio;	
+		//Percorre fila até encontrar um voo tipo D
+		for(;atual->proximo->modo!='D'; atual=atual->proximo);
+		aux=atual->proximo;
+		atual->proximo=aux->proximo;
+		aux->proximo=NULL;
+		//Caso esteja retirando o único elemento da fila
+		if(aux==voos->fim && aux==voos->inicio){
+			voos->fim=NULL;
+			voos->inicio=NULL;
+		}
+		//Caso esteja retirando o último da fila
+		else if(aux==voos->fim){
+			voos->fim=atual;
+		}
+		return aux;		
+	}
+	//Fila vazia ou não contem voos de decolagem 
+	else{
+		return NULL;
+	}
+}
 Lista * pop(Fila *voos){
 	Lista * aux;
 	//Fila não vazia
@@ -201,13 +233,13 @@ void novo_voo(Fila *voos, Lista *novo){
 			//printf("Voo com prioridade, ");
 				
 			//Caso o novo tenha menos prioridade que toda a fila
-			if(voos->fim->modo == 'A' && (voos->fim->combustivel)<(novo->combustivel)){
+			if(voos->fim->modo == 'A' && (voos->fim->combustivel)<=(novo->combustivel)){
 				//printf("Menos prioridade que toda a fila");
 				voos->fim->proximo=novo;
 				voos->fim = novo;
 			}
 			//Caso o novo tenha mais prioridade que o primeiro voo
-			else if((voos->inicio->modo!='A') || (voos->inicio->combustivel)>(novo->combustivel)){
+			else if((voos->inicio->modo!='A') || (voos->inicio->combustivel)>=(novo->combustivel)){
 				//printf("Mais prioridade que toda fila");
 				novo->proximo=voos->inicio;
 				voos->inicio=novo;
@@ -353,6 +385,10 @@ void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, 
 
 			if (pista1 == NULL) {
 				pista1 = (Pista *) malloc(sizeof(Pista));
+				if(pista1 == NULL){
+					printf("Alocação falhou");
+					exit(-1);
+				}
 
 				strcpy(pista1->codigo, atual->codigo);
 				pista1->modo = atual->modo;
@@ -364,6 +400,10 @@ void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, 
 			}
 			else if (pista2 == NULL) {
 				pista2 = (Pista *) malloc(sizeof(Pista));
+				if(pista2 == NULL){
+					printf("Alocação falhou");
+					exit(-1);
+				}
 				
 				strcpy(pista2->codigo, atual->codigo);
 				pista2->modo = atual->modo;
@@ -375,6 +415,10 @@ void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, 
 			}
 			else if (pista3 == NULL && comb0>=3) {
 				pista3 = (Pista *) malloc(sizeof(Pista));
+				if(pista3 == NULL){
+					printf("Alocação falhou");
+					exit(-1);
+				}
 				
 				strcpy(pista3->codigo, atual->codigo);
 				pista3->modo = atual->modo;
@@ -419,6 +463,10 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 		if (atual->modo == 'D'){
 			if(pista3 == NULL){
 				pista3 = (Pista *) malloc(sizeof(Pista));
+				if(pista3 == NULL){
+					printf("Alocação falhou");
+					exit(-1);
+				}
 				
 				strcpy(pista3->codigo, atual->codigo);
 				pista3->modo = atual->modo;
@@ -429,6 +477,10 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 			}
 			else if(pista1 == NULL){
 				pista1 = (Pista *) malloc(sizeof(Pista));
+				if(pista1 == NULL){
+					printf("Alocação falhou");
+					exit(-1);
+				}
 				
 				strcpy(pista1->codigo, atual->codigo);
 				pista1->modo = atual->modo;
@@ -439,6 +491,10 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 			}
 			else if(pista2 == NULL){
 				pista2 = (Pista *) malloc(sizeof(Pista));
+				if(pista2 == NULL){
+					printf("Alocação falhou");
+					exit(-1);
+				}
 				
 				strcpy(pista2->codigo, atual->codigo);
 				pista2->modo = atual->modo;
@@ -451,6 +507,10 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 		else {
 			if(pista1 == NULL){
 				pista1 = (Pista *) malloc(sizeof(Pista));
+				if(pista1 == NULL){
+					printf("Alocação falhou");
+					exit(-1);
+				}
 				
 				strcpy(pista1->codigo, atual->codigo);
 				pista1->modo = atual->modo;
@@ -461,6 +521,10 @@ void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int
 			}
 			else if(pista2 == NULL){
 				pista2 = (Pista *) malloc(sizeof(Pista));
+				if(pista2 == NULL){
+					printf("Alocação falhou");
+					exit(-1);
+				}
 				
 				strcpy(pista2->codigo, atual->codigo);
 				pista2->modo = atual->modo;
