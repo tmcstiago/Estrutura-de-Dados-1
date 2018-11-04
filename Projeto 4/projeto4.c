@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#define UNIDADE_TEMPO 5
+#define APROXIMACAO 1
+#define POUSO 3
+#define DECOLAGEM 2
 
 typedef struct lista {
 	char codigo[10];
@@ -16,18 +20,14 @@ typedef struct fila {
 } Fila;
 
 typedef struct pista {
-	char codigo[10];
 	char modo;
-	int combustivel;
 	int tempo_apx;
 	int tempo_pouso;
 	int tempo_decolagem;
+	int is_free;
 } Pista;
 
-Lista *aux;
-//horario inicial do programa
-int hora = 6;
-int min = 0;
+//Lista *aux;
 
 Fila *iniciar_fila();
 void novo_voo(Fila *voos, Lista *novo);
@@ -36,26 +36,18 @@ Lista * pop(Fila *);
 //Retorna da fila um voo de decolagem
 Lista * pop_d(Fila *voos);
 
-void mensagem_inicial(int Naproximacoes, int Ndecolagens);
-void mensagem_voo(int ut, int pista, Lista *voo);
+void mensagem_inicial(int n_voos ,int n_aproximacoes, int n_decolagens, int tempo);
+void mensagem_voo(int tempo, int pista, Lista *voo);
 void verificando_pistas(Pista *pista1, Pista *pista2, Pista *pista3);
 void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut);
 void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut);
-void altecao_combustivel(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3);
+void altecao_combustivel(Fila *voos);
 int random_number(int start, int end);
 void data_generate(Fila *voos, int * n_voos,int * n_aproximacoes, int *n_decolagens);
 
 int main () {
 	//Comando usado para que números gerados dentro do programa sejam aleatórios 
 	srand(time(NULL)); 
-	
-	aux = (Lista *) malloc(sizeof(Lista));
-	if(aux == NULL)
-	{
-		printf("Alocação falhou");
-		exit(-1);
-	}
-
 
 	Fila *voos = iniciar_fila();  // criando a cabeça da fila
 	int n_voos;
@@ -64,35 +56,103 @@ int main () {
 
 	data_generate(voos, &n_voos, &n_aproximacoes, &n_decolagens);
 
-	Pista *pista1 = NULL;
-	Pista *pista2 = NULL;
-	Pista *pista3 = NULL;
+	Pista *pista1, *pista2, *pista3;
+	pista1 = (Pista *) malloc(sizeof(Pista));
+	if(pista1 == NULL){
+		printf("Alocação falhou");
+		exit(-1);
+	}
+	pista1->is_free=1;
+	pista2 = (Pista *) malloc(sizeof(Pista));
+	if(pista2 == NULL){
+		printf("Alocação falhou");
+		exit(-1);
+	}
+	pista2->is_free=1;
+	pista3 = (Pista *) malloc(sizeof(Pista));
+	if(pista3 == NULL){
+		printf("Alocação falhou");
+		exit(-1);
+	}
+	pista3->is_free=1;
+	//Tempo atual em minutos
+	int tempo = random_number(0,24*60);
 
-	mensagem_inicial(n_aproximacoes, n_decolagens);
-
-	for (int ut = 1; 1; ++ut) { // ut = unidade de tempo = 5 min
-		scanf("%d", &min); //scanf para ter ponto de parada, pode excluir
-
+	mensagem_inicial(n_voos,n_aproximacoes, n_decolagens, tempo);
+	
+	for (int t=0;; ++t, tempo+=UNIDADE_TEMPO) { // t = unidade de tempo = 5 min
+		//printf("t:%d\n", t);
+		getchar();
 		// verificando se pode liberar alguma pista
 		verificando_pistas(pista1, pista2, pista3);
+		Lista *aeronave;
+		//printf("1\n");
+		if(pista1->is_free){
+			aeronave=pop(voos);
+			if(aeronave==NULL){
+				free(voos);
+				free(pista1);
+				free(pista2);
+				free(pista3);
+				return 0;
+			}
 
-		//verificando se tem algum voo com combustivel=0
-		voos_prioritarios(voos, pista1, pista2, pista3, ut);
+			pista1->modo=aeronave->modo;
+			pista1->tempo_apx=APROXIMACAO;
+			pista1->tempo_pouso=POUSO;
+			pista1->tempo_decolagem=DECOLAGEM;
+			pista1->is_free=0;
 
-		//continuando sequencia de voos
-		voos_sequencia(voos, pista1, pista2, pista3, ut);
-
-		//diminuindo o combustivel dos avioes
-		if (min%10 == 0) {
-			altecao_combustivel(voos, pista1, pista2, pista3);
+			mensagem_voo(tempo, 1, aeronave);
+			free(aeronave);
 		}
+		if(pista2->is_free){
+			aeronave=pop(voos);
+			if(aeronave==NULL){
+				free(pista1);
+				free(pista2);
+				free(pista3);
+				free (voos);
+				return 0;
+			}
 
+			pista2->modo=aeronave->modo;
+			pista2->tempo_apx=APROXIMACAO;
+			pista2->tempo_pouso=POUSO;
+			pista2->tempo_decolagem=DECOLAGEM;
+			pista2->is_free=0;
+
+			mensagem_voo(tempo, 2, aeronave);
+			free(aeronave);
+		}
+		if(pista3->is_free){
+			aeronave=pop_d(voos);
+			if(aeronave==NULL){
+				free (voos);
+				free(pista1);
+				free(pista2);
+				free(pista3);
+				return 0;
+			}
+			pista3 = (Pista *) malloc(sizeof(Pista));
+			if(pista3 == NULL){
+				printf("Alocação falhou");
+				exit(-1);
+			}
+			pista3->modo=aeronave->modo;
+			pista3->tempo_apx=APROXIMACAO;
+			pista3->tempo_pouso=POUSO;
+			pista3->tempo_decolagem=DECOLAGEM;
+			pista3->is_free=0;
+
+			mensagem_voo(tempo, 3, aeronave);
+			free(aeronave);
+		}
+		if (t%10==0 && t!=0) {
+			
+			altecao_combustivel(voos);
+		}
 	}
-
-	free (voos);
-	free (aux);
-
-	return 0;
 }
 //Gera número aleatório dentro do intervalo indicado, incluindo intervalo
 int random_number(int start, int end){
@@ -134,6 +194,7 @@ void data_generate(Fila *voos, int *n_voos, int *n_aproximacoes, int *n_decolage
 		strcpy(f->codigo, codigos[i]);
 		f->modo='A';
 		f->combustivel=random_number(0,12);
+		//f->combustivel=0;
 		//printf("Vôo %02d\nCódigo:%s\nModo:%c\nCombustível:%d\n", i+1, f->codigo, f->modo, f->combustivel);
 		novo_voo(voos, f);
 	}
@@ -165,11 +226,15 @@ Fila *iniciar_fila(){
 	return f;
 }
 Lista * pop_d(Fila *voos){
+	Lista * aux;
 	//Caso o primeiro da fila seja do tipo D
 	if(voos->inicio->modo=='D'){
 		return pop(voos);
 	}
-
+	if(voos->inicio->modo=='A' && voos->inicio->combustivel==0){
+		printf("\nALERTA GERAL DE DESVIO DE AERONAVE\n");
+		return pop(voos);
+	}
 	//Fila não vazia que contem pelo menos 1 voo do tipo 'D'
 	if(voos->fim != NULL && voos->fim->modo=='D'){
 		//printf("voos->fim->modo:%c\n", voos->fim->modo);
@@ -272,340 +337,133 @@ void novo_voo(Fila *voos, Lista *novo){
 }
 
 
-void mensagem_inicial(int Naproximacoes, int Ndecolagens) {
+void mensagem_inicial(int n_voos ,int n_aproximacoes, int n_decolagens, int tempo) {
 	printf("---------------------------------------------------------------------------------\n");
-	printf("Aeroporto Internacional de Brasília\n");
+	printf("“Aeroporto Internacional de Brasília”\n");
+	int hora=(tempo/60)%24;
+	int min=tempo%60;
 	printf("Hora Inicial: %02d:%02d\n", hora, min);
 	printf("Fila de Pedidos:\n"); //verificar qual texto complementar deve ser colocado
-	printf("NVoos: %d\n", Naproximacoes + Ndecolagens);
-	printf("NAproximações: %d\n", Naproximacoes);
-	printf("NDecolagens: %d\n", Ndecolagens);
+	printf("NVoos: %d\n", n_voos);
+	printf("NAproximações: %d\n", n_aproximacoes);
+	printf("NDecolagens: %d\n", n_decolagens);
 	printf("---------------------------------------------------------------------------------\n");
-	printf("Listagem de eventos:\n");
 }
 
 
-void mensagem_voo(int ut, int pista, Lista *voo){
-	int minu_voo = min + (ut*5)%60;
-	int hora_voo = hora + (ut *5)/60;
-	hora_voo = hora_voo/24;
+void mensagem_voo(int tempo, int pista, Lista *voo){
+	int hora=(tempo/60)%24;
+	int min=tempo%60;
 
 	printf("\nCódigo do voo: %s\n", voo->codigo);
 	if (voo->modo == 'A')
-		printf("Status: Aeronave Decolou\n");
+		printf("Status: Aeronave Pousou\n");
 	else
-		printf("Status: Aeronave pousou\n");
-	printf("Horário do início do procedimento: %02d:%02d\n", hora_voo, minu_voo);
+		printf("Status: Aeronave Decolou\n");
+	printf("Horário do início do procedimento: %02d:%02d\n", hora, min);
 	printf("Numero da Pista: %d\n", pista);
 }
 
 
 void verificando_pistas(Pista *pista1, Pista *pista2, Pista *pista3){
+	//printf("VERIFICANDO PISTAS...");
 	//verificando a pista 1
-	if (pista1->modo == 'A'){
-		if (pista1->tempo_apx > 0){
-			pista1->tempo_apx --;
+	if(!pista1->is_free){
+		//printf("Pista 1...\n");
+		if (pista1->modo == 'A'){
+
+			if (pista1->tempo_apx > 0){
+				pista1->tempo_apx --;
+			}
+			else{
+				pista1->tempo_pouso --;
+
+				if(pista1->tempo_pouso <= 0){
+					pista1->is_free=1;
+				}
+			}
 		}
 		else{
-			pista1->tempo_pouso --;
 
-			if(pista1->tempo_pouso == 0){
-				free (pista1);
-				pista1 == NULL;
+			pista1->tempo_decolagem--;
+
+			if(pista1->tempo_decolagem <= 0){
+				pista1->is_free=1;
 			}
 		}
 	}
-	else{
-		pista1->tempo_decolagem--;
-
-		if(pista1->tempo_decolagem == 0){
-			free (pista1);
-			pista1 == NULL;
-		}
-	}
-
 	// verificando a pista 2
-	if (pista2->modo == 'A'){
-		if (pista2->tempo_apx > 0){
-			pista2->tempo_apx --;
+	if(!pista2->is_free){
+		//printf("Pista 2...");
+		if (pista2->modo == 'A'){
+
+			if (pista2->tempo_apx > 0){
+				pista2->tempo_apx --;
+			}
+			else{
+				pista2->tempo_pouso --;
+
+				if(pista2->tempo_pouso == 0){
+					pista2->is_free=1;
+				}
+			}
 		}
 		else{
-			pista2->tempo_pouso --;
+			pista2->tempo_decolagem--;
 
-			if(pista2->tempo_pouso == 0){
-				free (pista2);
-				pista2 == NULL;
+			if(pista2->tempo_decolagem == 0){		
+				pista2->is_free=1;
 			}
 		}
 	}
-	else{
-		pista2->tempo_decolagem--;
-
-		if(pista2->tempo_decolagem == 0){
-			free (pista2);
-			pista2 == NULL;
-		}
-	}
-
 	//verificando a pista 3
-	if (pista3->modo == 'A'){
-		if (pista3->tempo_apx > 0){
-			pista3->tempo_apx --;
+	if(!pista3->is_free){
+		if (pista3->modo == 'A'){
+			if (pista3->tempo_apx > 0){
+				pista3->tempo_apx --;
+			}
+			else{
+				pista3->tempo_pouso --;
+
+				if(pista3->tempo_pouso == 0){				
+					pista3->is_free=1;
+				}
+			}
 		}
 		else{
-			pista3->tempo_pouso --;
+			pista3->tempo_decolagem--;
 
-			if(pista3->tempo_pouso == 0){
-				free (pista3);
-				pista3 == NULL;
+			if(pista3->tempo_decolagem == 0){		
+				pista3->is_free=1;
 			}
-		}
-	}
-	else{
-		pista1->tempo_decolagem--;
-
-		if(pista3->tempo_decolagem == 0){
-			free (pista3);
-			pista3 == NULL;
 		}
 	}
 }
 
-
-void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut){
-	Lista *atual;
-	int comb0 = 0; //quantidade de pista com combustivel = 0;
-
-	for(atual = voos->inicio; atual != NULL; atual = atual->proximo){
-		if (atual->modo == 'A' && atual->combustivel == 0){
-			comb0++;
-
-			if (comb0 == 3)
-				printf("ALERTA GERAL DE DESVIO DE AERONAVE\n");
-
-			if (pista1 == NULL) {
-				pista1 = (Pista *) malloc(sizeof(Pista));
-				if(pista1 == NULL){
-					printf("Alocação falhou");
-					exit(-1);
-				}
-
-				strcpy(pista1->codigo, atual->codigo);
-				pista1->modo = atual->modo;
-				pista1->combustivel = atual->combustivel;
-				pista1->tempo_apx = 1;
-				pista1->tempo_pouso = 3;
-
-				mensagem_voo(ut, 1, atual);
-			}
-			else if (pista2 == NULL) {
-				pista2 = (Pista *) malloc(sizeof(Pista));
-				if(pista2 == NULL){
-					printf("Alocação falhou");
-					exit(-1);
-				}
-				
-				strcpy(pista2->codigo, atual->codigo);
-				pista2->modo = atual->modo;
-				pista2->combustivel = atual->combustivel;
-				pista2->tempo_apx = 1;
-				pista2->tempo_pouso = 3;
-
-				mensagem_voo(ut, 2, atual);
-			}
-			else if (pista3 == NULL && comb0>=3) {
-				pista3 = (Pista *) malloc(sizeof(Pista));
-				if(pista3 == NULL){
-					printf("Alocação falhou");
-					exit(-1);
-				}
-				
-				strcpy(pista3->codigo, atual->codigo);
-				pista3->modo = atual->modo;
-				pista3->combustivel = atual->combustivel;
-				pista3->tempo_apx = 1;
-				pista3->tempo_pouso = 3;
-
-				mensagem_voo(ut, 3, atual);
-			}
-
-			//atualizando a Fila de voos
-			Lista *excluir;
-			excluir = atual;
-
-			if (atual == voos->inicio){
-				voos->inicio = atual->proximo;
-				aux->proximo = atual->proximo;
-				atual = aux;
-			}
-			else {
-				for (atual = voos->inicio; atual->proximo != excluir; atual = atual->proximo){}
-
-				atual->proximo = excluir->proximo;
-
-				if (voos->fim == excluir){
-					voos->fim = NULL;
-				}
-			}
-			free(excluir);
-		}
-	}
-}
-
-
-void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut){
-	Lista *atual;
-
-	for (atual = voos->inicio; atual!=NULL; atual->proximo){
-		if (pista1 != NULL && pista2 != NULL && pista3 != NULL) // todas as pistas estao cheias
-			break; 
-
-		if (atual->modo == 'D'){
-			if(pista3 == NULL){
-				pista3 = (Pista *) malloc(sizeof(Pista));
-				if(pista3 == NULL){
-					printf("Alocação falhou");
-					exit(-1);
-				}
-				
-				strcpy(pista3->codigo, atual->codigo);
-				pista3->modo = atual->modo;
-				pista3->combustivel = atual->combustivel;
-				pista3->tempo_decolagem = 2;
-
-				mensagem_voo(ut, 3, atual);
-			}
-			else if(pista1 == NULL){
-				pista1 = (Pista *) malloc(sizeof(Pista));
-				if(pista1 == NULL){
-					printf("Alocação falhou");
-					exit(-1);
-				}
-				
-				strcpy(pista1->codigo, atual->codigo);
-				pista1->modo = atual->modo;
-				pista1->combustivel = atual->combustivel;
-				pista1->tempo_decolagem = 2;
-
-				mensagem_voo(ut, 1, atual);
-			}
-			else if(pista2 == NULL){
-				pista2 = (Pista *) malloc(sizeof(Pista));
-				if(pista2 == NULL){
-					printf("Alocação falhou");
-					exit(-1);
-				}
-				
-				strcpy(pista2->codigo, atual->codigo);
-				pista2->modo = atual->modo;
-				pista2->combustivel = atual->combustivel;
-				pista2->tempo_decolagem = 2;
-
-				mensagem_voo(ut, 2, atual);
-			}
-		}
-		else {
-			if(pista1 == NULL){
-				pista1 = (Pista *) malloc(sizeof(Pista));
-				if(pista1 == NULL){
-					printf("Alocação falhou");
-					exit(-1);
-				}
-				
-				strcpy(pista1->codigo, atual->codigo);
-				pista1->modo = atual->modo;
-				pista1->combustivel = atual->combustivel;
-				pista1->tempo_decolagem = 2;
-
-				mensagem_voo(ut, 1, atual);
-			}
-			else if(pista2 == NULL){
-				pista2 = (Pista *) malloc(sizeof(Pista));
-				if(pista2 == NULL){
-					printf("Alocação falhou");
-					exit(-1);
-				}
-				
-				strcpy(pista2->codigo, atual->codigo);
-				pista2->modo = atual->modo;
-				pista2->combustivel = atual->combustivel;
-				pista2->tempo_decolagem = 2;
-
-				mensagem_voo(ut, 2, atual);
-			}
-		}
-		Lista *excluir;
-		excluir = atual;
-
-		voos->inicio = atual->proximo;
-		if (voos->fim == atual)
-			voos->fim = NULL;
-
-		aux->proximo = atual->proximo;
-
-		free(excluir);
-	}
-}
-
-
-void altecao_combustivel(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3) {
-	Lista *atual;
-
-	for (atual = voos->inicio; atual != NULL; atual = atual->proximo) {
+void altecao_combustivel(Fila *voos) {
+	Lista *atual;	
+	for (atual = voos->inicio; atual != NULL && atual->modo=='A'; atual = atual->proximo){
 		atual->combustivel --;
 
 		if (atual->combustivel < 0) {
 			Lista *excluir;
+			Lista *aux;
 			excluir = atual;
 
 			if (atual == voos->inicio){
+				excluir=voos->inicio;
 				voos->inicio = atual->proximo;
-				aux->proximo = atual->proximo;
-				atual = aux;
 			}
 			else {
-				for (atual = voos->inicio; atual->proximo != excluir; atual = atual->proximo){}
+				for (aux = voos->inicio; aux->proximo != excluir; aux = aux->proximo);
+				aux->proximo = excluir->proximo;
+				if(excluir==voos->fim)
+					voos->fim=atual;
 
-				atual->proximo = excluir->proximo;
-
-				if (voos->fim == excluir){
-					voos->fim = NULL;
-				}
 			}
 
-			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n", excluir->codigo);
+			printf("\nALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n", excluir->codigo);
 			free(excluir);
-		}
-	}
-
-	if (pista1 != NULL && pista1->modo == 'A') {
-		pista1->combustivel --;
-
-		if (pista1->combustivel < 0){
-			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n", pista1->codigo);
-
-			free(pista1);
-			pista1 = NULL;
-		}
-	}
-	if (pista2 != NULL && pista2->modo == 'A') {
-		pista2->combustivel --;
-
-		if (pista2->combustivel < 0){
-			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n", pista2->codigo);
-
-			free(pista2);
-			pista2 = NULL;
-		}
-	}
-	if (pista3 != NULL && pista3->modo == 'A') {
-		pista3->combustivel --;
-
-		if (pista3->combustivel < 0){
-			printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n", pista3->codigo);
-
-			free(pista3);
-			pista3 = NULL;
 		}
 	}
 }
