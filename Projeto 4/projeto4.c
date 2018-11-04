@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 typedef struct lista {
 	char codigo[7];
@@ -28,8 +29,6 @@ Lista *aux;
 int hora = 6;
 int min = 0;
 
-
-
 Fila *iniciar_fila();
 void novo_voo(Fila *voos, Lista *novo);
 
@@ -39,11 +38,15 @@ void verificando_pistas(Pista *pista1, Pista *pista2, Pista *pista3);
 void voos_prioritarios(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut);
 void voos_sequencia(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3, int ut);
 void altecao_combustivel(Fila *voos, Pista *pista1, Pista *pista2, Pista *pista3);
-
-
+int random_number(int start, int end);
+void data_generate();
 
 int main () {
+	//Comando usado para que números gerados dentro do programa sejam aleatórios 
+	srand(time(NULL)); 
 
+	data_generate();
+	
 	aux = (Lista *) malloc(sizeof(Lista));
 
 	Fila *voos = iniciar_fila();  // criando a cabeça da fila
@@ -92,7 +95,26 @@ int main () {
 
 	return 0;
 }
+//Gera número aleatório dentro do intervalo indicado, incluindo intervalo
+int random_number(int start, int end){
+	int number, diff;
+	diff = end-start;
+	number = rand()%(diff+1)+start;
+	return number;
+}
+void data_generate(){
+	int n_voos, n_aproximacoes, n_decolagens;
+	n_voos = random_number(20, 64);
+	n_aproximacoes = random_number(10, n_voos);
+	n_decolagens = n_voos - n_aproximacoes;
+	int comb_a[n_aproximacoes];
+	printf("n_voos:%d,\nn_aproximacoes:%d,\nn_decolagens:%d\n", n_voos, n_aproximacoes, n_decolagens);
+	for(int i=1; i<=n_aproximacoes; i++){
+		comb_a[i]=random_number(0,12);
+		printf("comb_a[%d]:%d,\n", i, comb_a[i]);
+	}
 
+}
 
 Fila *iniciar_fila(){
 	Fila *f;
