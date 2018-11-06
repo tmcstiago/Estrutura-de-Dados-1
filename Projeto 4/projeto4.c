@@ -185,6 +185,7 @@ void data_generate(Fila *voos, int *n_voos, int *n_aproximacoes, int *n_decolage
 	int Naproximacoes=(*n_aproximacoes);
 	int Ndecolagens=(*n_decolagens);
 	int modo; // 1 é pouso 2 é decolagem
+	int memory[64]; // Guarda um código para ao sortear não se repetir
 	//Naproximacoes=Nvoos;
 	//Ndecolagens=0;
 	for(int i=0; Naproximacoes || Ndecolagens; i++){
@@ -197,9 +198,20 @@ void data_generate(Fila *voos, int *n_voos, int *n_aproximacoes, int *n_decolage
 		if(Naproximacoes==0) modo = 2;
 		else if(Ndecolagens==0) modo = 1;
 		else modo = random_number(1,2);
+		
+		//Sorteio do código do avião
+		int code;
+		code=random_number(0,63);
+		for(int j=i; j>=0; j--){
+			if(code==memory[j]){
+				code=random_number(0,63);
+				j=i;	
+			}
+		}
+		memory[i]=code;
+		strcpy(f->codigo, codigos[code]);
 
 		if(modo==1){
-			strcpy(f->codigo, codigos[i]);
 			f->modo='A';
 			f->combustivel=random_number(0,12);
 			//f->combustivel=1;
@@ -208,7 +220,6 @@ void data_generate(Fila *voos, int *n_voos, int *n_aproximacoes, int *n_decolage
 			Naproximacoes--;
 		}
 		else{
-			strcpy(f->codigo, codigos[i]);
 			f->modo='D';
 			//printf("Vôo %02d\nCódigo:%s\nModo:%c\n", i+1, f->codigo, f->modo);
 			novo_voo(voos, f);
