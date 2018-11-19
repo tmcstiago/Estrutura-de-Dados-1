@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define ESPACO 5
 
 typedef struct ArvoreBinaria{
 	int valor;
@@ -26,7 +27,7 @@ void busca(Arvore *arvore, int valor, int *aux); //busca valor e retorna nível 
 int altura(Arvore *arvore);
 Arvore * iniciar_arvore(int valor);
 void insere_valor(Arvore * item, int valor);
-void imprimeLinha(Arvore * arvore, int aux, int linha);
+void imprimeLinha(Arvore *arvore, int depth, char *path, int direita);
 int tamanho(Arvore *arvore);
 void imprimeNo(char c, int b);
 
@@ -34,7 +35,7 @@ int main(){
 	Arvore *arvore; 
 	arvore = loadTreeFromFile("example.txt");
 	showTree(arvore);
-	printInOrder(arvore);
+	printPostOrder(arvore);
 	getHeight(arvore);
 	searchValue(arvore, 1);
 	return 0;
@@ -51,7 +52,7 @@ Arvore * loadTreeFromFile(char *path){
 	Arvore *arvore;
 	if(fscanf(arquivo,"%d", &value)!=EOF){
 		arvore = iniciar_arvore(value);
-		printf("Criando arvore com %d...\n", value);
+		//printf("Criando arvore com %d...\n", value);
 	}
 	else
 		return NULL;
@@ -78,11 +79,11 @@ void insere_valor(Arvore * arvore, int valor){
 		return;
 	else if(valor > arvore->valor){
 		if(arvore->direita==NULL){
-			printf("%d > %d\n", valor, arvore->valor);
+			//printf("%d > %d\n", valor, arvore->valor);
 			Arvore *novo_valor;
 			novo_valor=iniciar_arvore(valor);
 			arvore->direita=novo_valor;
-			printf("Inserindo %d a direita...\n", valor);
+			//printf("Inserindo %d a direita...\n", valor);
 		}
 		else{
 			insere_valor(arvore->direita, valor);
@@ -90,11 +91,11 @@ void insere_valor(Arvore * arvore, int valor){
 	}
 	else{
 		if(arvore->esquerda==NULL){
-			printf("%d < %d\n", valor, arvore->valor);
+			//printf("%d < %d\n", valor, arvore->valor);
 			Arvore *novo_valor;
 			novo_valor=iniciar_arvore(valor);
 			arvore->esquerda=novo_valor;
-			printf("Inserindo %d a esquerda...\n", valor);
+			//printf("Inserindo %d a esquerda...\n", valor);
 		}
 		else{
 			insere_valor(arvore->esquerda, valor);
@@ -156,30 +157,61 @@ void busca(Arvore *arvore, int valor, int *aux){
 void showTree(Arvore *arvore){
 	int tam = tamanho(arvore);
 	int h = altura(arvore);
-	for (int i=0; i<h; i++){
-		for(int j=i; j<h; j++)
-			printf("   ");
-		imprimeLinha(arvore, 0, i);
-		printf("\n");
-		for(int j=i; j<h; j++)
-			printf("   ");
-		for(int k=0; k<=i; k++){
-			printf("/ ");
-			printf("\\  ");
-		}
-		printf("\n");
-	}
+	char path[255] = {};
+	imprimeLinha(arvore, 0, path, 0);
+	printf("\n");
 }
-void imprimeLinha(Arvore *arvore, int aux, int linha){
-	if(arvore==NULL){		
-        	return;
-	}
-	imprimeLinha(arvore->esquerda, aux+1, linha);
-	if(aux==linha){
-		printf("%2d   ", arvore->valor);
+void imprimeLinha(Arvore *arvore, int depth, char *path, int direita){
+	if(arvore==NULL){			
 		return;
 	}
-	imprimeLinha(arvore->direita, aux+1, linha);
+
+	depth++;
+
+	imprimeLinha(arvore->direita, depth, path, 1);
+	// set | draw map
+	path[depth-2] = 0;
+
+	if(direita)
+		path[depth-2] = 1;
+
+	if(arvore->esquerda)
+		path[depth-1] = 1;
+
+	// print root after spacing
+	printf("\n");
+
+	for(int i=0; i<depth-1; i++)
+	{
+		if(i == depth-2)
+		  printf("+");
+		else if(path[i])
+		  printf("|");
+		else
+		  printf(" ");
+
+		for(int j=1; j<ESPACO; j++){
+			if(i < depth-2)
+			  printf(" ");
+			else
+			  printf("-");
+		}
+	}
+
+	printf("%d\n", arvore->valor);
+
+	// vertical espacors below
+	for(int i=0; i<depth; i++)
+	{
+		if(path[i])
+		  printf("|");
+		else
+		  printf(" ");
+
+		for(int j=1; j<ESPACO; j++)
+		  printf(" ");
+	}
+	imprimeLinha(arvore->esquerda, depth, path, 0);		
 }
 int tamanho(Arvore*arvore){
 	if(arvore==NULL){
