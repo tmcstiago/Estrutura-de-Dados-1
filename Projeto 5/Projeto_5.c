@@ -13,7 +13,7 @@ typedef struct ArvoreBinaria{
 Arvore * loadTreeFromFile(char *path);
 void showTree(Arvore *arvore);
 //void isFull(Arvore *arvore);
-//void searchValue(Arvore *arvore, value);
+void searchValue(Arvore *arvore, int valor);
 void getHeight(Arvore *arvore);
 //void removeValue(Arvore *arvore, int value);
 void printInOrder(Arvore *arvore);
@@ -22,6 +22,7 @@ void printPostOrder(Arvore *arvore);
 //void balanceTree(Arvore *arvore);
 
 //Funções criadas para auxilio no programa
+void busca(Arvore *arvore, int valor, int *aux); //busca valor e retorna nível de seu nó ao aux
 int altura(Arvore *arvore);
 Arvore * iniciar_arvore(int valor);
 void insere_valor(Arvore * item, int valor);
@@ -32,9 +33,10 @@ void imprimeNo(char c, int b);
 int main(){
 	Arvore *arvore; 
 	arvore = loadTreeFromFile("example.txt");
-	getHeight(arvore);
 	showTree(arvore);
 	printInOrder(arvore);
+	getHeight(arvore);
+	searchValue(arvore, 1);
 	return 0;
 }
 
@@ -97,6 +99,58 @@ void insere_valor(Arvore * arvore, int valor){
 		else{
 			insere_valor(arvore->esquerda, valor);
 		}
+	}
+}
+void searchValue(Arvore *arvore, int valor){
+	int i=1;
+	busca(arvore, valor, &i);
+	printf("Nível do seu nó:%d\n", i);
+
+}
+void busca(Arvore *arvore, int valor, int *aux){
+	(*aux)++;
+	if(valor<arvore->valor){
+		if(arvore->esquerda != NULL){
+			if(arvore->esquerda->valor==valor){
+				printf("Valor encontrado\n");
+				printf("Valor do pai %d\n", arvore->valor);
+				if(arvore->direita != NULL){
+					printf("Valor do irmão %d\n", arvore->direita->valor);
+				}
+				return;
+			}
+			{
+				busca(arvore->esquerda, valor, aux);
+			}
+		}
+		else{
+			printf("O valor não foi encontrado\n");
+			return;
+		}
+	}
+	else if(valor>arvore->valor){
+		if(arvore->direita != NULL){
+			if(arvore->direita->valor==valor){
+				printf("Valor encontrado\n");
+				printf("Valor do pai %d\n", arvore->valor);
+				if(arvore->esquerda != NULL){
+					printf("Valor do irmão %d\n", arvore->esquerda->valor);
+				}
+				return;
+			}
+			else{
+				busca(arvore->direita, valor, aux);
+			}
+		}
+		else{
+			printf("O valor não foi encontrado\n");
+			return;
+		}
+	}
+	else{
+		printf("Valor encontrado\n");
+		printf("O valor é a raiz da árvora, portanto não tem pai nem irmãos\n");
+		return;
 	}
 }
 void showTree(Arvore *arvore){
