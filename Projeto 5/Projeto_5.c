@@ -16,14 +16,14 @@ void showTree(Arvore *arvore);
 //void isFull(Arvore *arvore);
 void searchValue(Arvore *arvore, int valor);
 void getHeight(Arvore *arvore);
-//void removeValue(Arvore *arvore, int value);
+void removeValue(Arvore *arvore, int value);
 void printInOrder(Arvore *arvore);
 void printPreOrder(Arvore *arvore);
 void printPostOrder(Arvore *arvore);
 //void balanceTree(Arvore *arvore);
 
 //Funções criadas para auxilio no programa
-void busca(Arvore *arvore, int valor, int *aux); //busca valor e retorna nível de seu nó ao aux
+Arvore * busca(Arvore *arvore, int valor, int *aux); //busca valor e retorna nível de seu nó ao aux
 int altura(Arvore *arvore);
 Arvore * iniciar_arvore(int valor);
 void insere_valor(Arvore * item, int valor);
@@ -35,9 +35,11 @@ int main(){
 	Arvore *arvore; 
 	arvore = loadTreeFromFile("example.txt");
 	showTree(arvore);
-	printPostOrder(arvore);
+	//printPostOrder(arvore);
 	getHeight(arvore);
 	searchValue(arvore, 1);
+	removeValue(arvore, 3);
+	showTree(arvore);
 	return 0;
 }
 
@@ -102,13 +104,46 @@ void insere_valor(Arvore * arvore, int valor){
 		}
 	}
 }
-void searchValue(Arvore *arvore, int valor){
+void removeValue(Arvore *arvore, int value){
 	int i=1;
-	busca(arvore, valor, &i);
-	printf("Nível do seu nó:%d\n", i);
+	Arvore * delete = busca(arvore, value, &i);
+	if(delete==NULL){
+		printf("O elemento não foi encontrado\n");
+		return;
+	}
+	if(i==1){
+		printf("Cabeça da árvore\n");
+	}
+	else{
+		//printf("Elemento\n");
+		Arvore *aux;
+		if(delete->esquerda->valor == value){
+			//printf("Elemento da esquerda\n");
+			aux=delete->esquerda;
+			if(aux->direita == NULL && aux->esquerda == NULL){
+				delete->esquerda=NULL;
+				free(aux);
+			}
+		}
+		else{
+			//printf("Elemento da direita\n");
+			aux=delete->direita;
+			if(aux->direita == NULL && aux->esquerda == NULL){
+				delete->direita=NULL;
+				free(aux);
+			}
+		}
+	}
 
 }
-void busca(Arvore *arvore, int valor, int *aux){
+void searchValue(Arvore *arvore, int valor){
+	int i=1;
+	Arvore * aux = busca(arvore, valor, &i);
+	if(aux!=NULL)
+		printf("Nível do seu nó:%d\n", i);
+
+}
+Arvore * busca(Arvore *arvore, int valor, int *aux){
 	(*aux)++;
 	if(valor<arvore->valor){
 		if(arvore->esquerda != NULL){
@@ -118,7 +153,7 @@ void busca(Arvore *arvore, int valor, int *aux){
 				if(arvore->direita != NULL){
 					printf("Valor do irmão %d\n", arvore->direita->valor);
 				}
-				return;
+				return arvore;
 			}
 			{
 				busca(arvore->esquerda, valor, aux);
@@ -126,7 +161,7 @@ void busca(Arvore *arvore, int valor, int *aux){
 		}
 		else{
 			printf("O valor não foi encontrado\n");
-			return;
+			return NULL;
 		}
 	}
 	else if(valor>arvore->valor){
@@ -137,7 +172,7 @@ void busca(Arvore *arvore, int valor, int *aux){
 				if(arvore->esquerda != NULL){
 					printf("Valor do irmão %d\n", arvore->esquerda->valor);
 				}
-				return;
+				return arvore;
 			}
 			else{
 				busca(arvore->direita, valor, aux);
@@ -145,13 +180,13 @@ void busca(Arvore *arvore, int valor, int *aux){
 		}
 		else{
 			printf("O valor não foi encontrado\n");
-			return;
+			return NULL;
 		}
 	}
 	else{
 		printf("Valor encontrado\n");
 		printf("O valor é a raiz da árvora, portanto não tem pai nem irmãos\n");
-		return;
+		return arvore;
 	}
 }
 void showTree(Arvore *arvore){
