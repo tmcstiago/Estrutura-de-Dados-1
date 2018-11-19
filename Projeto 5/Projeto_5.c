@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #define ESPACO 5
 
 typedef struct ArvoreBinaria{
@@ -13,7 +14,7 @@ typedef struct ArvoreBinaria{
 
 Arvore * loadTreeFromFile(char *path);
 void showTree(Arvore *arvore);
-//void isFull(Arvore *arvore);
+void isFull(Arvore *arvore);
 void searchValue(Arvore *arvore, int valor);
 void getHeight(Arvore *arvore);
 Arvore * removeValue(Arvore *arvore, int value);
@@ -30,6 +31,8 @@ void insere_valor(Arvore * item, int valor);
 void imprimeLinha(Arvore *arvore, int depth, char *path, int direita);
 int tamanho(Arvore *arvore);
 void imprimeNo(char c, int b);
+bool isFullBool(Arvore *arvore, int index, int nodes);
+int contaNos(Arvore *arvore);
 
 int main(){
 	Arvore *arvore; 
@@ -38,8 +41,10 @@ int main(){
 	//printPostOrder(arvore);
 	getHeight(arvore);
 	searchValue(arvore, 23);
-	arvore = removeValue(arvore, 4);
+	arvore = removeValue(arvore, 8);
+	arvore = removeValue(arvore, 23);
 	showTree(arvore);
+	isFull(arvore);
 	return 0;
 }
 
@@ -63,7 +68,32 @@ Arvore * loadTreeFromFile(char *path){
 	}
 	return arvore;
 }
+bool isFullBool(Arvore *arvore, int index, int nodes){
+	if (arvore == NULL) 
+        	return true;
+	
+	if (index >= nodes) 
+        	return false;
 
+	return (isFullBool(arvore->esquerda, 2*index + 1, nodes) && 
+                 isFullBool(arvore->direita, 2*index + 2, nodes)
+		);
+}
+void isFull(Arvore *arvore){
+	int nodes = contaNos(arvore);
+	if(isFullBool(arvore, 0, nodes))
+		printf("A arvore é cheia\n");
+	else 
+		printf("A arvore não é cheia\n");
+
+
+}
+int contaNos(Arvore *arvore){
+	if (arvore == NULL) 
+       		return 0; 
+    	return (1 + contaNos(arvore->esquerda) + contaNos(arvore->direita));
+
+}
 Arvore * iniciar_arvore(int valor){
 	Arvore *nova_arvore;
 	nova_arvore = (Arvore *) malloc(sizeof(Arvore));
