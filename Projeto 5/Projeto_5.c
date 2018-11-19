@@ -16,7 +16,7 @@ void showTree(Arvore *arvore);
 //void isFull(Arvore *arvore);
 void searchValue(Arvore *arvore, int valor);
 void getHeight(Arvore *arvore);
-void removeValue(Arvore *arvore, int value);
+Arvore * removeValue(Arvore *arvore, int value);
 void printInOrder(Arvore *arvore);
 void printPreOrder(Arvore *arvore);
 void printPostOrder(Arvore *arvore);
@@ -38,7 +38,7 @@ int main(){
 	//printPostOrder(arvore);
 	getHeight(arvore);
 	searchValue(arvore, 23);
-	removeValue(arvore, 23);
+	arvore = removeValue(arvore, 4);
 	showTree(arvore);
 	return 0;
 }
@@ -104,42 +104,67 @@ void insere_valor(Arvore * arvore, int valor){
 		}
 	}
 }
-void removeValue(Arvore *arvore, int value){
+Arvore * removeValue(Arvore *arvore, int value){
 	int i=1;
 	Arvore * delete = busca(arvore, value, &i);
 	if(delete==NULL){
 		printf("O valor não foi encontrado para o excluir\n");
-		return;
+		return arvore;
 	}
-	if(i==1){
-		printf("Cabeça da árvore\n");
-		return;
+	if(delete==arvore){
+		if(arvore->direita==NULL && arvore->esquerda==NULL){
+			free(arvore);			
+			return NULL;
+		}
+		else if(arvore->direita==NULL && arvore->esquerda!=NULL){
+			free(delete);			
+			return arvore->esquerda;
+		}
+		else if(arvore->direita!=NULL && arvore->esquerda==NULL){
+			free(delete);			
+			return arvore->direita;
+		}
+		else{
+			Arvore *i=arvore->direita;
+			if(i->esquerda == NULL){
+				i->esquerda=arvore->esquerda;
+				free(arvore);
+				return i;
+			}
+			else{
+				for(; i->esquerda->esquerda != NULL; i=i->esquerda);
+				arvore->valor=i->esquerda->valor;
+				Arvore *aux=i->esquerda;;
+				i->esquerda=NULL;
+				free(aux);
+			}		
+		}
 	}
-	else{
+	else{	
 		//printf("Elemento\n");
 		Arvore *aux;
-		if(delete->esquerda->valor == value){
+		if(delete->esquerda != NULL && delete->esquerda->valor == value){
 			//printf("Elemento da esquerda\n");
 			aux=delete->esquerda;
 			if(aux->direita == NULL && aux->esquerda == NULL){
 				delete->esquerda=NULL;
 				free(aux);
-				return;
 			}
 			else if(aux->direita == NULL && aux->esquerda != NULL){
-				printf("passou 1");
 				delete->esquerda=aux->esquerda;
 				free(aux);
-				return;
 			}
 			else if(aux->direita != NULL && aux->esquerda == NULL){
-				printf("passou 2");
 				delete->esquerda=aux->direita;
 				free(aux);
-				return;
 			}
 			else{
-
+				Arvore *i;
+				for(i=aux->direita; i->esquerda->esquerda != NULL; i=i->esquerda);
+				aux->valor=i->esquerda->valor;
+				aux=i->esquerda;
+				i->esquerda=NULL;
+				free(aux);
 			}
 		}
 		else{
@@ -148,32 +173,32 @@ void removeValue(Arvore *arvore, int value){
 			if(aux->direita == NULL && aux->esquerda == NULL){
 				delete->direita=NULL;
 				free(aux);
-				return;
 			}
 			else if(aux->direita == NULL && aux->esquerda != NULL){
-				printf("passou 3");
 				delete->direita=aux->esquerda;
 				free(aux);
-				return;
 			}
 			else if(aux->direita != NULL && aux->esquerda == NULL){
-				printf("passou 4");
 				delete->direita=aux->direita;
 				free(aux);
-				return;
 			}
 			else{
-				
+				Arvore *i;
+				for(i=aux->direita; i->esquerda->esquerda != NULL; i=i->esquerda);
+				aux->valor=i->esquerda->valor;
+				aux=i->esquerda;
+				i->esquerda=NULL;
+				free(aux);
 			}
 		}
 	}
-
+	return arvore;
 }
 void searchValue(Arvore *arvore, int valor){
 	int i=1;
 	Arvore * aux = busca(arvore, valor, &i);
 	if(aux!=NULL){
-		if(arvore == aux && i==1){
+		if(arvore == aux){
 			printf("Valor encontrado\n");
 			printf("O valor é a raiz da árvora, portanto não tem pai nem irmãos\n");
 		}
