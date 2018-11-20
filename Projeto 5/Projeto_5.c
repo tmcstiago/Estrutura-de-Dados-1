@@ -33,6 +33,7 @@ int tamanho(Arvore *arvore);
 void imprimeNo(char c, int b);
 bool isFullBool(Arvore *arvore, int index, int nodes);
 int contaNos(Arvore *arvore);
+void freeTree(Arvore * arvore);
 
 int main(){
 	Arvore *arvore = NULL;
@@ -49,6 +50,7 @@ int main(){
 		printf("8. Printa valores usando algorítimo pre order\n");
 		printf("9. Printa valores usando algorítimo post order\n");
 		printf("10. Realiza balanceamento da ávore carregada\n");
+		printf("0. Fecha programa\n");
 		scanf("%d", &opcao);
 		printf("\n\n\n");
 		switch(opcao){
@@ -100,8 +102,17 @@ int main(){
 	
 		}	
 	}while(opcao!=0);
-	
+	freeTree(arvore);
 	return 0;
+}
+
+void freeTree(Arvore * arvore){
+	if(arvore==NULL){		
+        	return;
+	}
+	freeTree(arvore->esquerda);
+	freeTree(arvore->direita);
+	free(arvore);
 }
 
 Arvore * loadTreeFromFile(char *path){
@@ -124,6 +135,7 @@ Arvore * loadTreeFromFile(char *path){
 	}
 	return arvore;
 }
+
 bool isFullBool(Arvore *arvore, int index, int nodes){
 	if (arvore == NULL) 
         	return true;
