@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define ESPACO 5
+																			int teste;
 
 typedef struct ArvoreBinaria{
 	int valor;
@@ -30,7 +31,12 @@ void insere_valor(Arvore * item, int valor);
 void imprimeLinha(Arvore *arvore, int depth, char *path, int direita);
 int tamanho(Arvore *arvore);
 void imprimeNo(char c, int b);
-void imprimiArvore(Arvore *arvore, int altura);
+void imprimiArvore(Arvore *arvore, int altura, int nivel);
+void imprimi_elementos(Arvore *arvore, int altura, int nivel, int nivel_atual);
+int espacos_esquerda(int atura, int nivel);
+int espacos_entre_elementos(int atura, int nivel);
+void imprimi_barras(Arvore *arvore, int altura, int nivel, int nivel_atual);
+
 
 int main(){
 	Arvore *arvore; 
@@ -251,28 +257,33 @@ void showTree(Arvore *arvore){
 	//int tam = tamanho(arvore);
 	int h = altura(arvore);
 	int nivel = 1;
-	char path[255] = {};
+	//char path[255] = {};
 //	imprimeLinha(arvore, 0, path, 0); // função de imprimir a arvore na horizontal
-	imprimiArvore (arvore, h, nivel)
+	imprimiArvore (arvore, h, nivel);
 	printf("\n");
 }
 
 
 void imprimiArvore(Arvore *arvore, int altura, int nivel){
-	int qnt_espacos_esqueda = espacos_esquerda(altura, nivel);
-	for (int i=0; i<qnt_espacos_esqueda, i++)
+	int qnt_espacos_esqueda = espacos_esquerda(altura, nivel)+1;
+
+	for (int i=0; i<qnt_espacos_esqueda; i++)
 		printf(" ");
 
 	imprimi_elementos(arvore, altura, nivel, 1);
 
 	if (altura == nivel)
 		return;
-	
+	printf("\n");
+																			
 	int espacos = espacos_esquerda(altura, nivel)/2;
-	for (int i=0; i<espacos_esquerda; i++)
-			printf(" ");
 
+	for (int i=0; i<espacos; i++){
+			printf(" ");
+	}
+	
 	imprimi_barras (arvore, altura, nivel, 1);
+	printf("\n");
 	
 	return imprimiArvore (arvore, altura, nivel+1);
 }
@@ -284,61 +295,101 @@ void imprimi_elementos(Arvore *arvore, int altura, int nivel, int nivel_atual){
 		return;
 	}
 	if (arvore == NULL){
-		if (nivel == nivel_atual)
+		// if (nivel == nivel_atual)
 			printf(" ");
-		return;
-	}
-	if (nivel == nivel_atual){
-		printf("%d", arvore->valor);
-		return;
-	}
-	else if {
-		elementos(arvore->esquerda, altura, nivel, nivel+1);
-		if (nivel == nivel_atual-1){
-			int espaço = espacos_entre_elementos(altura, nivel); //imprimi os espaços entre os dois elementos
+		for (int i=nivel_atual; i<=nivel; i++){
+			int espacos = espacos_entre_elementos(altura, nivel)+1; //imprimi os espaços entre os dois elementos
 			for (int i=0; i<espacos; i++){
 				printf(" ");
 			}
 		}
-		elementos(arvore->direita, altura, nivel, nivel+1);
+		return;
+	}
+	if (nivel == nivel_atual){
+		printf("%d", arvore->valor);
+
+		int espacos = espacos_entre_elementos(altura, nivel)+1; //imprimi os espaços entre os dois elementos
+		for (int i=0; i<espacos; i++){
+			printf(" ");
+		}
+
+		return;
+	}
+	else {
+		imprimi_elementos(arvore->esquerda, altura, nivel, nivel_atual+1);
+		// if (nivel == nivel_atual+1){
+		// 	int espacos = espacos_entre_elementos(altura, nivel); //imprimi os espaços entre os dois elementos
+
+		// 	for (int i=0; i<espacos; i++){
+		// 		printf(" ");
+		// 	}
+		// }
+		imprimi_elementos(arvore->direita, altura, nivel, nivel_atual+1);
+		// if (nivel == nivel_atual+1){
+		// 	int espacos = espacos_entre_elementos(altura, nivel)+2; //imprimi os espaços entre dois nos
+
+		// 	for (int i=0; i<espacos; i++){
+		// 		printf(" ");
+		// 	}
+		// }
+		return;
 	}
 
 }
 
 
-int espacos_esquerda(int atura, int nivel){
+int espacos_esquerda(int altura, int nivel){
 	if (altura == nivel)
 		return 0;
-	return (espacos(altura, nivel+1)+1)*2;
+	return (espacos_esquerda(altura, nivel+1)+1)*2;
 }
 
 
-int espacos_entre_elementos(int atura, int nivel){
+int espacos_entre_elementos(int altura, int nivel){
 	if (altura == nivel)
 		return 2;
-	return (espacos(altura, nivel+1)+1)*2;
+	return (espacos_entre_elementos(altura, nivel+1)+1)*2;
 }
 
 
 void imprimi_barras(Arvore *arvore, int altura, int nivel, int nivel_atual){
-	if (nivel == 2){
+	if (nivel == 1){
+
 		if (arvore->esquerda != NULL)
 			printf("/");
 		else
 			printf(" ");
 
 		int espaco = espacos_entre_elementos (altura, nivel+1); // calculando o espaço entre as barras
+																			// printf("teste16\n");
+
 		for (int i = 0; i<espaco; ++i)
 			printf(" ");
 
 		if (arvore->direita != NULL)
-			printf("/");
+			printf("\\");
 		else
 			printf(" ");
 
+		return;
+	}
+
+	if (arvore == NULL){
+		// if (nivel == nivel_atual)
+			printf(" ");  // representando o espaço da primeira barra
+			int espaco = espacos_entre_elementos (altura, nivel+1); // calculando o espaço entre as barras
+			for (int i = 0; i<espaco; ++i)
+				printf(" ");
+
+			printf(" ");  // representando o espaço da segunda barra
+
+			espaco = espacos_entre_elementos(altura, nivel+1)+2; //calculando o espaço entre um conjunto de barras
+			for (int i = 0; i<espaco; ++i)
+				printf(" ");
 		return;
 	}
 	if (nivel == nivel_atual){
+
 		if (arvore->esquerda != NULL)
 			printf("/");
 		else
@@ -349,20 +400,25 @@ void imprimi_barras(Arvore *arvore, int altura, int nivel, int nivel_atual){
 			printf(" ");
 
 		if (arvore->direita != NULL)
-			printf("/");
+			printf("\\");
 		else
 			printf(" ");
+		// printf("a");
 
-		return;
-	}
-	else if {
-		elementos(arvore->esquerda, altura, nivel, nivel+1);
-		if (nivel == nivel_atual-1){
-			int espaco = espacos_entre_elementos(altura, nivel+1)+2; //calculando o espaço entre um conjunto de barras
+		espaco = espacos_entre_elementos(altura, nivel+1)+2; //calculando o espaço entre um conjunto de barras
 			for (int i = 0; i<espaco; ++i)
 				printf(" ");
-		}
-		elementos(arvore->direita, altura, nivel, nivel+1);
+		return;
+	}
+	else {
+
+		imprimi_barras(arvore->esquerda, altura, nivel, nivel_atual+1);
+		// if (nivel == nivel_atual+1){
+		// 	int espaco = espacos_entre_elementos(altura, nivel+1)+2; //calculando o espaço entre um conjunto de barras
+		// 	for (int i = 0; i<espaco; ++i)
+		// 		printf(" ");
+		// }
+		imprimi_barras(arvore->direita, altura, nivel, nivel_atual+1);
 	}
 }
 
