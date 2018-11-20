@@ -35,16 +35,72 @@ bool isFullBool(Arvore *arvore, int index, int nodes);
 int contaNos(Arvore *arvore);
 
 int main(){
-	Arvore *arvore; 
-	arvore = loadTreeFromFile("example.txt");
-	showTree(arvore);
-	//printPostOrder(arvore);
-	getHeight(arvore);
-	searchValue(arvore, 23);
-	arvore = removeValue(arvore, 8);
-	arvore = removeValue(arvore, 23);
-	showTree(arvore);
-	isFull(arvore);
+	Arvore *arvore = NULL;
+	int opcao;
+	do{
+		printf("\n\n\n");
+		printf("1. Carrega arvore a partir de arquivo\n");
+		printf("2. Mostra árvore carregada\n");
+		printf("3. Verifica se árvore é cheia ou não\n");
+		printf("4. Procura valor na árvore (É mostrado valor pai, nível, e irmão caso possua)\n");
+		printf("5. Mostra altura da árvore\n");
+		printf("6. Remove valor da árvore\n");
+		printf("7. Printa valores usando algorítimo in order\n");
+		printf("8. Printa valores usando algorítimo pre order\n");
+		printf("9. Printa valores usando algorítimo post order\n");
+		printf("10. Realiza balanceamento da ávore carregada\n");
+		scanf("%d", &opcao);
+		printf("\n\n\n");
+		switch(opcao){
+			case 1:
+			{
+				char path[500];
+				printf("Escreva o nome do arquivo: ./");
+				scanf("%s", path);
+				arvore = loadTreeFromFile(path);
+				break;
+			}					
+			case 2:
+				showTree(arvore);
+				break;
+			case 3:
+				isFull(arvore);
+				break;
+			case 4:
+			{
+				int value;
+				printf("Escreva o valor que será buscado:");
+				scanf("%d", &value);
+				searchValue(arvore, value);
+				break;
+			}				
+			case 5:
+				getHeight(arvore);
+				break;
+			case 6:
+			{
+				int value;
+				printf("Escreva o valor que será removido:");
+				scanf("%d", &value);
+				arvore = removeValue(arvore, value);
+				break;
+			}			
+			case 7:
+				printInOrder(arvore);
+				break;
+			case 8:
+				printPreOrder(arvore);
+				break;
+			case 9:
+				printPostOrder(arvore);
+				break;
+			case 10:
+			
+				break;
+	
+		}	
+	}while(opcao!=0);
+	
 	return 0;
 }
 
