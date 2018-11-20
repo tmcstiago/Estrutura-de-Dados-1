@@ -46,7 +46,7 @@ void imprimi_barras(Arvore *arvore, int altura, int nivel, int nivel_atual);
 
 int main(){
 	Arvore *arvore = NULL;
-	arvore = loadTreeFromFile("example.txt");
+	arvore = NULL;
 	int opcao;
 	do{
 		printf("\n\n\n");
@@ -109,7 +109,6 @@ int main(){
 			case 10:
 			{
 				arvore = balanceTree(arvore);
-				printf("END 3\n");
 			}
 		}	
 	}while(opcao!=0);
@@ -117,18 +116,14 @@ int main(){
 	return 0;
 }
 void rotacionaDireita(Arvore *avo, Arvore *pai, Arvore *filho){
-	printf("1");
 	if(avo != NULL){
-		printf("2");
 		if(avo->esquerda == pai)
 			avo->esquerda = filho;
 		else
 			avo->direita = filho;
 	}	
-	printf("3");
 	pai->esquerda = filho->direita;
 	filho->direita = pai;
-	printf("4\n");
 
 }
 void rotacionaEsquerda(Arvore *avo, Arvore *pai, Arvore *filho){
@@ -150,43 +145,33 @@ Arvore * makeBackbone(Arvore *arvore, Arvore *avo, Arvore *pai, Arvore *filho){
 	}
 	//Tem filho a esquerda?
 	if(filho->esquerda != NULL){
-		printf("1");
 		//É raiz?
 		if(filho==arvore){
-			printf(".1\n");
 			pai=filho;
 			filho=filho->esquerda;
 			rotacionaDireita(avo, pai, filho);
-			showTree(filho);
 			arvore = makeBackbone(filho, avo, pai, filho);
 			
 		}	
 		else{
-			printf(".2\n");
 			pai=filho;
 			filho=filho->esquerda;
 			rotacionaDireita(avo, pai, filho);
-			showTree(arvore);
 			arvore = makeBackbone(arvore, avo, pai, filho);
 		}
 	}
 	else{
-		printf("2");
 		if(avo==filho){
-			printf(".1");
 			//Tem filho a direita?
 			if(filho->direita != NULL){
-				printf(".1\n");
 				filho=filho->direita;
 				arvore = makeBackbone(arvore, avo, pai, filho);
 			}
 			else{
-				printf(".2\n");
 				return arvore;
 			}
 		}
 		else{
-			printf(".2\n");
 			avo=filho;
 			arvore = makeBackbone(arvore, avo, pai, filho);
 		}	
@@ -194,13 +179,14 @@ Arvore * makeBackbone(Arvore *arvore, Arvore *avo, Arvore *pai, Arvore *filho){
 	return arvore;
 }
 Arvore * balanceTree(Arvore *arvore){
-	if(isBalanced(arvore))
+	if(isBalanced(arvore)){
+		printf("A árvore já está balanceada\n");
 		return arvore;
+	}
 	else{
+		printf("A árvore foi balanceada\n");
 		Arvore *aux;
-		printf("balanceTree\n");
-		aux = makeBackbone(arvore, NULL, NULL, NULL);
-		printf("END 2\n");
+		aux = makeBackbone(arvore, NULL, NULL, arvore);
 		return aux;
 	}
 }
