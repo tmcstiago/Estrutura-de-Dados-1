@@ -574,7 +574,7 @@ void imprimi_barras(Arvore *arvore, int altura, int nivel, int nivel_atual){
 			}
 			printf(" ");  // representando o espaço da segunda barra
 
-			espaco = espacos_entre_elementos(altura, nivel+1)+2; //calculando o espaço entre um conjunto de barras
+			int espaco = espacos_entre_elementos(altura, nivel+1)+2; //calculando o espaço entre um conjunto de barras
 			for (int i = 0; i<espaco; ++i)
 				printf(" ");
 		return;
