@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
-
-int random_number(int start, int end); //Gera número aleatório dentro do intervalo indicado, incluindo intervalo
+#include <math.h>
 
 typedef struct elemento {
 	int valor;
@@ -16,26 +15,41 @@ typedef struct lista {
 	struct elemento *fim;
 } Lista;
 
+int random_number(int start, int end); //Gera número aleatório dentro do intervalo indicado, incluindo intervalo
 Lista * lista_vazia();
-void insere_valor(Lista * lista, int valor); 
+void insere_valor(Lista * lista, int valor);
+
+double funcao_ativacao(Lista *p, Lista *w, int b);
 
 int main(){
 	//Comando usado para que números gerados dentro do programa sejam aleatórios 
 	srand(time(NULL));
 	int i;
-	Lista * pesos;
-	pesos=lista_vazia();
-	for(i=0; i<20; i++)
-		insere_valor(pesos, random_number(1, 20));
+	Lista * p=lista_vazia();
+	Lista * w=lista_vazia();
+	int b = 0;
 
-	Elemento * atual;
-	for(	i=0, atual=pesos->inicio; i<pesos->tamanho; i++, atual=atual->proximo){
-		printf("%d\n", atual->valor);
-	}
-	printf("Primeiro valor da lista: %d\n", pesos->inicio->valor);
-	printf("Último valor da lista: %d\n", pesos->fim->valor);
-	printf("Tamanho da lista: %d\n", pesos->tamanho);
+	insere_valor(p, 1);
+	insere_valor(w, 6);
+
+	insere_valor(p, 0);
+	insere_valor(w, 7);
+
+	insere_valor(p, 1);
+	insere_valor(w, 5);
+
+	double s=funcao_ativacao(p, w, b);
+
+	printf("s = %lf\n", s);
+
 	return 0;
+}
+
+int random_number(int start, int end){
+	int number, diff;
+	diff = end-start;
+	number = rand()%(diff+1)+start;
+	return number;
 }
 
 Lista * lista_vazia(){
@@ -74,9 +88,21 @@ void insere_valor(Lista * lista, int valor){
 	}
 }
 
-int random_number(int start, int end){
-	int number, diff;
-	diff = end-start;
-	number = rand()%(diff+1)+start;
-	return number;
+double funcao_ativacao(Lista *p, Lista *w, int b){
+	if(p->tamanho != w->tamanho){
+		printf("Erro na função de ativação\n");
+		exit(-1);
+	}
+	
+	Elemento * p_atual=p->inicio;
+	Elemento * w_atual=w->inicio;
+	double n=b;
+	for(int i=0 ; i<p->tamanho ; p_atual=p_atual->proximo, w_atual=w_atual->proximo, i++){
+		n += p_atual->valor*w_atual->valor;
+	}
+
+	double s;
+	s=1/(1+pow(M_E, (-1)*n));
+	
+	return s;
 }
