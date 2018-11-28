@@ -21,10 +21,14 @@ void insere_valor(Lista * lista, int valor);
 
 double funcao_ativacao(Lista *p, Lista *w, int b);
 
-int main(){
+int main(int argc, char *argv[]){
 	//Comando usado para que números gerados dentro do programa sejam aleatórios 
 	srand(time(NULL));
-	int i;
+	if(argv[1] == NULL){
+		printf("É preciso passar o número de neurônios\nex.: $ ./proj6 10\n");
+		exit(-1);
+	}
+	int n_neuronios = atoi(argv[1]); //Pega o primeiro argumento ao rodar o código
 	Lista * p=lista_vazia();
 	Lista * w=lista_vazia();
 	int b = 0;
@@ -41,6 +45,8 @@ int main(){
 	double s=funcao_ativacao(p, w, b);
 
 	printf("s = %lf\n", s);
+
+	printf("%d\n", n_neuronios);
 
 	return 0;
 }
