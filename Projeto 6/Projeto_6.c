@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include <math.h>
+#define IMAGES_PATH "imagem_estabilizada.txt"
 
 typedef struct neuronio {
 	double valor;
@@ -52,68 +53,70 @@ int main(int argc, char *argv[]){
 	}
 	int n_neuronios = atoi(argv[1]); //Pega o primeiro argumento ao rodar o código
 
-	//Armazenamento das imagens
-	Lista * grama[50], * asfalto[50];
+	//Criação dos vetores para sortear as imagens
 	int n_grama[50],  n_asfalto[50];
 	generate_random_numbers(n_grama, 1, 50);
 	generate_random_numbers(n_asfalto, 51, 100);
 
-	/*
-	//Criação da camada oculta com valores crescentes, e w criado acima para cada neurônio
+	//Armazenamento das imagens
+	Lista * grama[50], * asfalto[50];
+	for(int i=0; i<50; i++){
+		grama[i]=ler_imagem(IMAGES_PATH, n_grama[i]);
+		asfalto[i]=ler_imagem(IMAGES_PATH, n_asfalto[i]);
+	}
+
+	//Criação da camada oculta com valores aleatôrios, e w aleatôrio para cada neurônio
 	Camada * camada_oculta = camada_vazia();
 	for(int i=0; i<n_neuronios; i++){
 		Lista * w = lista_vazia();
 		// Criação do vetor W aleatório
 		for(int i=0; i<grama[0]->tamanho; i++)
 			insere_elemento(w, random_number(-200,200));
-		insere_neuronio(camada_oculta, i, w);
+		insere_neuronio(camada_oculta, random_number(-200,200) , w);
 	}
 
-	//Criação da camada de saída com um único neurônio
+	
+	//Criação da camada de saída com um único neurônio de valor 0
 	Camada * camada_saida = camada_vazia();
 	Lista * w = lista_vazia();
 	for(int i=0; i<camada_oculta->tamanho; i++)
 		insere_elemento(w, random_number(-200,200));
 	insere_neuronio(camada_saida, 0, w);
-
-	//Procedimentos
-	transferencia(camada_oculta, grama[0]);
-	ativacao(camada_saida, camada_oculta);
-
-	//Erro
-	double erro;
-
-	//DEBUG
-	printf("Vetor entrada:\n");
-	printf("tamanho=%d\n", grama[0]->tamanho);
-	Elemento * atual=grama[0]->inicio;
-	for(int i=0; i<grama[0]->tamanho; i++, atual=atual->proximo){
-		printf("%.2lf ", atual->valor);
-	}
-	printf("\n\n");
-
-	printf("Camada Oculta:\n");
-	printf("b=%.2lf\n", camada_oculta->b);
-	printf("tamanho=%d\n", camada_oculta->tamanho);
-	Neuronio * n_atual=camada_oculta->inicio;
-	for(int i=0; i<camada_oculta->tamanho; i++, n_atual=n_atual->proximo){
-		printf("%.2lf\t", n_atual->valor);
-		printf("%d\n", n_atual->w->tamanho);
-	}
-	printf("\n");
-
-	printf("Camada de Saída:\n");
-	printf("b=%.2lf\n", camada_saida->b);
-	printf("tamanho=%d\n", camada_saida->tamanho);
-	n_atual=camada_saida->inicio;
-	printf("%.2lf\t", n_atual->valor);
-	printf("%d\n", n_atual->w->tamanho);
 	
-	printf("\n\n");
-	
+	//Época com 25 imagens de cada tipo
+	double erro[50];
+	for(int i=0; i<50; i++)
+		erro[i]=0;
+
+	double result;
+	for(int i=0; i<25; i++){
+		//Procedimento com grama
+		transferencia(camada_oculta, grama[i]);
+		ativacao(camada_saida, camada_oculta);
+		result = camada_saida->inicio->valor;
+		erro[i]=1-result;
+		printf("Procedimento %d\nValor Obitido para grama:%.2lf\tEsperado:1.00\nErro:%lf\n", i+1 , result, erro[i]);
+
+		//Procedimento com asfalto
+		transferencia(camada_oculta, asfalto[i]);
+		ativacao(camada_saida, camada_oculta);
+		result = camada_saida->inicio->valor;
+		erro[i+25]=0-result;
+		printf("Valor Obitido para asfalto:%.2lf\tEsperado:0.00\nErro:%lf\n\n", result, erro[i+25]);
+	}
+	double media=0;
+	for(int i=0; i<50; i++)
+		media+=erro[i];
+	media/=50;
+	printf("Média de erro:%lf\n", media);
+
 	free_camada(camada_oculta);
 	free_camada(camada_saida);
-	*/
+
+	for(int i=0; i<50; i++){
+		free_lista(grama[i]);
+		free_lista(asfalto[i]);
+	}
 	return 0;
 }
 
@@ -210,10 +213,11 @@ void free_lista(Lista *lista){
 		return;
 	}
 	else{
-		Elemento * limpar=atual->proximo;
-		for(int i=0; i<lista->tamanho; i++, atual=atual->proximo){
+		Elemento * limpar=atual;
+		atual=atual->proximo;
+		for(; atual->proximo!=NULL; atual=atual->proximo){
 			free(limpar);
-			limpar=atual->proximo;
+			limpar=atual;
 		}
 		free(atual);
 		free(lista);
@@ -228,18 +232,20 @@ void free_camada(Camada *camada){
 		return;
 	}
 	else if(camada->tamanho == 1){
-		free(atual->w);
+		free_lista(atual->w);
 		free(atual);	
 		free(camada);
 		return;
 	}
 	else{
-	Neuronio * limpar=atual->proximo;
-		for(int i=0; i<camada->tamanho; i++, atual=atual->proximo){
-			free(limpar->w);
+		Neuronio * limpar=atual;
+		atual=atual->proximo;
+		for(; atual->proximo!=NULL ; atual=atual->proximo){
+			free_lista(limpar->w);
 			free(limpar);
-			limpar=atual->proximo;
+			limpar=atual;
 		}
+		free_lista(atual->w);
 		free(atual);
 		free(camada);
 		return;
