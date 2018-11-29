@@ -33,6 +33,8 @@ Camada * camada_vazia();
 Lista * lista_vazia();
 void insere_neuronio(Camada * camada, double valor, Lista * w);
 void insere_elemento(Lista * lista, double valor);
+void free_lista(Lista *lista);
+void free_camada(Camada *camada);
 
 Lista * ler_imagem(char *path, int linha);
 double tan_h(double value);
@@ -51,13 +53,14 @@ int main(int argc, char *argv[]){
 	Lista * imagem = ler_imagem("a1.txt", 2); //Lê imagem e passa para Lista
 
 	// Criação do vetor W [0, 1, 2, 3, 4, 5]
-	Lista * w = lista_vazia();
-	for(int i=0; i<6; i++)
-		insere_elemento(w, i);
+	
 
 	//Criação da camada oculta com valores crescentes, e w criado acima para cada neurônio
 	Camada * camada_oculta = camada_vazia();
 	for(int i=0; i<n_neuronios; i++){
+		Lista * w = lista_vazia();
+		for(int i=0; i<6; i++)
+			insere_elemento(w, random_number(-200,200));
 		insere_neuronio(camada_oculta, i, w);
 	}
 
@@ -77,8 +80,9 @@ int main(int argc, char *argv[]){
 		printf("%.2lf ", n_atual->valor);
 	}
 	printf("\n");
-
-
+	
+	free_lista(imagem);
+	free_camada(camada_oculta);
 	return 0;
 }
 
@@ -159,6 +163,28 @@ void insere_elemento(Lista * lista, double valor){
 		lista->fim=novo_valor;
 		lista->tamanho++;
 	}
+}
+
+void free_lista(Lista *lista){
+	Elemento * atual=lista->inicio;
+	Elemento * limpar=atual->proximo;
+	for(int i=0; i<lista->tamanho; i++, atual=atual->proximo){
+		free(limpar);
+	}
+	free(atual);
+	free(lista);
+}
+
+void free_camada(Camada *camada){
+	Neuronio * atual=camada->inicio;
+	Neuronio * limpar=atual->proximo;
+	for(int i=0; i<camada->tamanho; i++, atual=atual->proximo){
+		free(limpar->w);
+		free(limpar);
+	}
+	free(atual);
+	free(camada);
+
 }
 
 Lista * ler_imagem(char *path, int linha){
