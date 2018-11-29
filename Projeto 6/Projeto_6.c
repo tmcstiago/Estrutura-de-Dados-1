@@ -15,9 +15,12 @@ typedef struct lista {
 	struct elemento *fim;
 } Lista;
 
+
 int random_number(int start, int end); //Gera número aleatório dentro do intervalo indicado, incluindo intervalo
 Lista * lista_vazia();
 void insere_valor(Lista * lista, int valor);
+
+Lista * ler_imagem(char *path, int linha);
 
 double funcao_ativacao(Lista *p, Lista *w, int b);
 
@@ -25,28 +28,17 @@ int main(int argc, char *argv[]){
 	//Comando usado para que números gerados dentro do programa sejam aleatórios 
 	srand(time(NULL));
 	if(argv[1] == NULL){
-		printf("É preciso passar o número de neurônios\nex.: $ ./proj6 10\n");
+		printf("É preciso passar o número de neurônios\nex.: $ %s 10\n", argv[0]);
 		exit(-1);
 	}
 	int n_neuronios = atoi(argv[1]); //Pega o primeiro argumento ao rodar o código
-	Lista * p=lista_vazia();
-	Lista * w=lista_vazia();
-	int b = 0;
-
-	insere_valor(p, 1);
-	insere_valor(w, 6);
-
-	insere_valor(p, 0);
-	insere_valor(w, 7);
-
-	insere_valor(p, 1);
-	insere_valor(w, 5);
-
-	double s=funcao_ativacao(p, w, b);
-
-	printf("s = %lf\n", s);
-
-	printf("%d\n", n_neuronios);
+	Lista * imagem = ler_imagem("a1.txt", 3);
+	printf("Tamanho da linha: %d\n", imagem->tamanho);
+	Elemento * atual=imagem->inicio;
+	for(int i=0; i<imagem->tamanho; i++, atual=atual->proximo){
+		printf("%d ", atual->valor);
+	}
+	printf("\n");
 
 	return 0;
 }
@@ -92,6 +84,35 @@ void insere_valor(Lista * lista, int valor){
 		lista->fim=novo_elemento;
 		lista->tamanho++;
 	}
+}
+
+Lista * ler_imagem(char *path, int linha){
+	FILE *arquivo;
+	arquivo = fopen(path, "r");
+	if (arquivo == NULL){
+		printf("Erro na leitura do arquivo\n");
+		return NULL;
+	}
+	char aux;
+	for(int i=1; i<linha; ){
+		if(fscanf(arquivo,"%c", &aux)!=EOF){
+			if(aux=='\n')
+				i++;
+		}
+		else{
+			printf("Erro na leitura do arquivo\n");
+			return NULL;
+		}
+	}
+	Lista * imagem = lista_vazia();
+	int value;
+	while(fscanf(arquivo,"%d%c", &value, &aux)!=EOF){
+		insere_valor(imagem, value);
+		if(aux=='\n'){
+			return imagem;
+		}
+	}
+	return imagem;
 }
 
 double funcao_ativacao(Lista *p, Lista *w, int b){
