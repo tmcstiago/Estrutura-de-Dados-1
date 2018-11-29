@@ -40,7 +40,7 @@ Lista * ler_imagem(char *path, int linha);
 double tan_h(double value);
 
 void transferencia(Camada *u, Lista *v);
-//double funcao_ativacao(Camada *p, Camada *w, int b);
+void ativacao(Camada *saida, Camada *u);
 
 int main(int argc, char *argv[]){
 	//Comando usado para que números gerados dentro do programa sejam aleatórios 
@@ -52,37 +52,57 @@ int main(int argc, char *argv[]){
 	int n_neuronios = atoi(argv[1]); //Pega o primeiro argumento ao rodar o código
 	Lista * imagem = ler_imagem("a1.txt", 2); //Lê imagem e passa para Lista
 
-	// Criação do vetor W [0, 1, 2, 3, 4, 5]
-	
-
 	//Criação da camada oculta com valores crescentes, e w criado acima para cada neurônio
 	Camada * camada_oculta = camada_vazia();
 	for(int i=0; i<n_neuronios; i++){
 		Lista * w = lista_vazia();
+		// Criação do vetor W aleatório
 		for(int i=0; i<6; i++)
 			insere_elemento(w, random_number(-200,200));
 		insere_neuronio(camada_oculta, i, w);
 	}
 
-	transferencia(camada_oculta, imagem);
+	//Criação da camada de saída com um único neurônio
+	Camada * camada_saida = camada_vazia();
+	Lista * w = lista_vazia();
+	for(int i=0; i<camada_oculta->tamanho; i++)
+		insere_elemento(w, random_number(-200,200));
+	insere_neuronio(camada_saida, 0, w);
 
+	//Procedimentos
+	transferencia(camada_oculta, imagem);
+	ativacao(camada_saida, camada_oculta);
+
+	//DEBUG
 	printf("Vetor entrada:\n");
+	printf("tamanho=%d\n", imagem->tamanho);
 	Elemento * atual=imagem->inicio;
 	for(int i=0; i<imagem->tamanho; i++, atual=atual->proximo){
 		printf("%.2lf ", atual->valor);
 	}
-	printf("\n");
+	printf("\n\n");
 
 	printf("Camada Oculta:\n");
 	printf("b=%.2lf\n", camada_oculta->b);
+	printf("tamanho=%d\n", camada_oculta->tamanho);
 	Neuronio * n_atual=camada_oculta->inicio;
 	for(int i=0; i<camada_oculta->tamanho; i++, n_atual=n_atual->proximo){
 		printf("%.2lf ", n_atual->valor);
 	}
-	printf("\n");
+	printf("\n\n");
+
+	printf("Camada de Saída:\n");
+	printf("b=%.2lf\n", camada_saida->b);
+	printf("tamanho=%d\n", camada_saida->tamanho);
+	n_atual=camada_saida->inicio;
+	for(int i=0; i<camada_saida->tamanho; i++, n_atual=n_atual->proximo){
+		printf("%.2lf ", n_atual->valor);
+	}
+	printf("\n\n");
 	
 	free_lista(imagem);
 	free_camada(camada_oculta);
+	free_camada(camada_saida);
 	return 0;
 }
 
@@ -167,6 +187,10 @@ void insere_elemento(Lista * lista, double valor){
 
 void free_lista(Lista *lista){
 	Elemento * atual=lista->inicio;
+	if(lista->tamanho <= 1){
+		free(atual);
+		return;
+	}
 	Elemento * limpar=atual->proximo;
 	for(int i=0; i<lista->tamanho; i++, atual=atual->proximo){
 		free(limpar);
@@ -177,6 +201,11 @@ void free_lista(Lista *lista){
 
 void free_camada(Camada *camada){
 	Neuronio * atual=camada->inicio;
+	if(camada->tamanho <= 1){
+		free(atual->w);
+		free(atual);
+		return;
+	}
 	Neuronio * limpar=atual->proximo;
 	for(int i=0; i<camada->tamanho; i++, atual=atual->proximo){
 		free(limpar->w);
@@ -241,23 +270,21 @@ double tan_h(double value){
 	return (pow(M_E, value) - pow(M_E, value*(-1)))/(pow(M_E, value) + pow(M_E, value*(-1)));
 }
 
-/*
-double funcao_ativacao(Camada *p, Camada *w, int b){
-	if(p->tamanho != w->tamanho){
-		printf("Erro na função de ativação\n");
+
+void ativacao(Camada *saida, Camada *u){
+	Neuronio * u_atual=u->inicio;
+	Neuronio * n_saida = saida->inicio;
+	if(u->tamanho != n_saida->w->tamanho){
+		printf("Erro na função de ativacao\n");
 		exit(-1);
 	}
-	
-	Neuronio * p_atual=p->inicio;
-	Neuronio * w_atual=w->inicio;
-	double n=b;
-	for(int i=0 ; i<p->tamanho ; p_atual=p_atual->proximo, w_atual=w_atual->proximo, i++){
-		n += p_atual->valor*w_atual->valor;
+	double n=saida->b;
+	Elemento * w_atual=n_saida->w->inicio;
+	for(int i=0 ; i<u->tamanho ; u_atual=u_atual->proximo, w_atual=w_atual->proximo, i++){
+		n += u_atual->valor*w_atual->valor;
 	}
 
-	double s;
-	s=1/(1+pow(M_E, (-1)*n));
+	n_saida->valor = 1/(1+pow(M_E, (-1)*n));
 	
-	return s;
 }
-*/
+
