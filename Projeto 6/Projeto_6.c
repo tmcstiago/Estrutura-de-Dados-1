@@ -21,6 +21,7 @@ Lista * lista_vazia();
 void insere_valor(Lista * lista, int valor);
 
 Lista * ler_imagem(char *path, int linha);
+double tan_h(double value);
 
 double funcao_ativacao(Lista *p, Lista *w, int b);
 
@@ -33,7 +34,7 @@ int main(int argc, char *argv[]){
 	}
 	int n_neuronios = atoi(argv[1]); //Pega o primeiro argumento ao rodar o código
 	Lista * imagem = ler_imagem("a1.txt", 3);
-	printf("Tamanho da linha: %d\n", imagem->tamanho);
+	printf("tan_h(2): %lf\n", tan_h(2));
 	Elemento * atual=imagem->inicio;
 	for(int i=0; i<imagem->tamanho; i++, atual=atual->proximo){
 		printf("%d ", atual->valor);
@@ -132,4 +133,8 @@ double funcao_ativacao(Lista *p, Lista *w, int b){
 	s=1/(1+pow(M_E, (-1)*n));
 	
 	return s;
+}
+
+double tan_h(double value){
+	return (pow(M_E, value) - pow(M_E, value*(-1)))/(pow(M_E, value) + pow(M_E, value*(-1)));
 }
