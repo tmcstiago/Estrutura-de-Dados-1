@@ -78,7 +78,7 @@ int main(int argc, char *argv[]){
 	}
 
 	
-	//Criação da camada de saída com um único neurônio de valor 0
+	// Criação da camada de saída com um único neurônio de valor 0
 	Camada * camada_saida = camada_vazia();
 	Lista * w = lista_vazia();
 	for(int i=0; i<camada_oculta->tamanho; i++)
@@ -89,6 +89,100 @@ int main(int argc, char *argv[]){
 	double erro[50];
 	for(int i=0; i<50; i++)
 		erro[i]=0;
+
+	// Realizando o embaralhamento das imagens
+	int tipo_misturado[50][2];
+	int qnt_grama = 0;
+	int qnt_asfalto = 0;
+
+	for (int i=0; i<50; int++){
+		tipo_misturado[i][0] = random_number(0,1);
+
+		if (tipo_misturado[i][0] == 0){ // verificando se ja possui 25 imagens de asfalto
+			if (qnt_asfalto == 25){
+				for (; i<50; i++) {
+					tipo_misturado[i][0] = 1;
+
+					while (1) { // sorteando o numero da posição
+						int sorteio = random_number(0,24);
+						int tem_numero = 0;
+						for (int j=0; j<i; j++) {
+							if (tipo_misturado[j][0] == 1 && tipo_misturado[j][1] == sorteio){
+								tem_numero = 1;
+								break;
+							}
+						}
+						if (tem_numero == 1){
+							break;
+						}
+						else {
+							tipo_misturado[i][1] == sorteio;
+
+							while (1) {
+								int sorteio = random_number(0,24);
+								int tem_numero = 0;
+								for (int j=0; j<i; j++) {
+									if (tipo_misturado[j][0] == 0 && tipo_misturado[j][1] == sorteio){
+										tem_numero = 1;
+										break;
+									}
+								}
+								if (tem_numero == 1){
+									break;
+								}
+								else
+									tipo_misturado[i][1] == sorteio;
+							}
+						}
+					}
+				}
+			}
+			else
+				qnt_asfalto ++;
+		}
+		else { // verificando se ja possui 25 imagens de grama
+			if (qnt_grama == 25){
+				for (; i<50; i++) {
+					tipo_misturado[i][0] = 0;
+
+					while (1) {
+						int sorteio = random_number(0,24);
+						int tem_numero = 0;
+						for (int j=0; j<i; j++) {
+							if (tipo_misturado[j][0] == 0 && tipo_misturado[j][1] == sorteio){
+								tem_numero = 1;
+								break;
+							}
+						}
+						if (tem_numero == 1){
+							break;
+						}
+						else
+							tipo_misturado[i][1] == sorteio;
+					}
+				}
+			}
+			else {
+				qnt_grama ++;
+				while (1) {
+					int sorteio = random_number(0,24);
+					int tem_numero = 0;
+					for (int j=0; j<i; j++) {
+						if (tipo_misturado[j][0] == 1 && tipo_misturado[j][1] == sorteio){
+							tem_numero = 1;
+							break;
+						}
+					}
+					if (tem_numero == 1){
+						break;
+					}
+					else
+						tipo_misturado[i][1] == sorteio;
+				}
+			}
+		}
+	}
+
 
 	double result;
 	for(int i=0; i<1; i++){
