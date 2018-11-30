@@ -208,6 +208,16 @@ int main(int argc, char *argv[]){
 	media/=50;
 	printf("Média de erro:%lf\n", media);
 
+
+	float acerto = 0;
+	float falsa_aceitacao = 0;
+	float falsa_rejeicao = 0;
+	printf ("Taxa de acerto = %.2f %\n", acerto*100);
+	printf ("Taxa de falsa aceitacao = %.2f %\n", falsa_aceitacao*100);
+	printf ("Taxa de falsa rejeicao = %.2f %\n", falsa_rejeicao*100);
+
+
+
 	free_camada(camada_oculta);
 	free_camada(camada_saida);
 
