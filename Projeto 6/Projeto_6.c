@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <math.h>
 #define IMAGES_PATH "imagem_estabilizada.txt"
+#define GRAMA 1
+#define ASFALTO 0
 
 typedef struct neuronio {
 	double valor;
@@ -19,6 +21,7 @@ typedef struct camada {
 } Camada;
 
 typedef struct lista {
+	int tipo; //Usado apenas nas listas de imagens
 	int tamanho;
 	struct elemento *inicio;
 	struct elemento *fim;
@@ -37,8 +40,8 @@ void insere_elemento(Lista * lista, double valor);
 void free_lista(Lista *lista);
 void free_camada(Camada *camada);
 
-Lista * ler_imagem(char *path, int linha);
-void generate_random_numbers(int * vector, int start, int end); // Gera 50 valores distintos dentro do intervalo e armazena em vector
+Lista * ler_imagem(char *path, int linha, int tipo);
+void generate_random_numbers(int * vector, int start, int tam); // Gera 50 valores distintos dentro do intervalo e armazena em vector
 double funcao_logistica(double value);
 double d_dx_funcao_logistica(double value);
 
@@ -58,13 +61,18 @@ int main(int argc, char *argv[]){
 	//Criação dos vetores para sortear as imagens
 	int n_grama[50],  n_asfalto[50];
 	generate_random_numbers(n_grama, 1, 50);
-	generate_random_numbers(n_asfalto, 51, 100);
+	generate_random_numbers(n_asfalto, 51, 50);
 
 	//Armazenamento das imagens
-	Lista * grama[50], * asfalto[50];
-	for(int i=0; i<50; i++){
-		grama[i]=ler_imagem(IMAGES_PATH, n_grama[i]);
-		asfalto[i]=ler_imagem(IMAGES_PATH, n_asfalto[i]);
+	Lista * imagem_treinamento[50];
+	for(int i=0; i<50; i+=2){
+		imagem_treinamento[i]=ler_imagem(IMAGES_PATH, n_grama[i], GRAMA);
+		imagem_treinamento[i+1]=ler_imagem(IMAGES_PATH, n_asfalto[i], ASFALTO);
+	}
+	Lista * imagem_teste[50];
+	for(int i=0; i<50; i+=2){
+		imagem_teste[i]=ler_imagem(IMAGES_PATH, n_grama[i], GRAMA);
+		imagem_teste[i+1]=ler_imagem(IMAGES_PATH, n_asfalto[i], ASFALTO);
 	}
 
 	//Criação da camada oculta com valores aleatôrios, e w aleatôrio para cada neurônio
@@ -72,158 +80,64 @@ int main(int argc, char *argv[]){
 	for(int i=0; i<n_neuronios; i++){
 		Lista * w = lista_vazia();
 		// Criação do vetor W aleatório
-		for(int i=0; i<grama[0]->tamanho; i++)
-			insere_elemento(w, random_number(-200,200));
-		insere_neuronio(camada_oculta, random_number(-200,200) , w);
+		for(int i=0; i<imagem_treinamento[0]->tamanho; i++)
+			insere_elemento(w, rand());
+		insere_neuronio(camada_oculta, rand() , w);
 	}
-
 	
 	// Criação da camada de saída com um único neurônio de valor 0
 	Camada * camada_saida = camada_vazia();
 	Lista * w = lista_vazia();
 	for(int i=0; i<camada_oculta->tamanho; i++)
-		insere_elemento(w, random_number(-200,200));
+		insere_elemento(w, rand());
 	insere_neuronio(camada_saida, 0, w);
 	
 	//Época com 25 imagens de cada tipo
-	double erro[50];
-	for(int i=0; i<50; i++)
-		erro[i]=0;
+	int epoca=0; // Número da época
+	double erro_medio;
+	do{
+		printf("Época: %d\n", epoca+1);
+		double erro[50];
+		for(int i=0; i<50; i++)
+			erro[i]=0;
 
-	// Realizando o embaralhamento das imagens
-	int tipo_misturado[50][2];
-	int qnt_grama = 0;
-	int qnt_asfalto = 0;
+		double result;
+		int valor_imagem[50]; // Armazena valores aleatórios para serem escolhidos no treinamento
+		generate_random_numbers(valor_imagem, 0, 50);
+		for(int i=0; i<50; i++){
+			//Procedimento com grama
+			transferencia(camada_oculta, imagem_treinamento[valor_imagem[i]]);
+			ativacao(camada_saida, camada_oculta);
+			result = camada_saida->inicio->valor;
+			double valor_esperado = imagem_treinamento[valor_imagem[i]]->tipo;
+			erro[i]=valor_esperado-result;
+			backprogramation(camada_saida, camada_oculta, erro[i]);
+			printf("Procedimento %d\nValor obitido:%.2lf\tValor esperado:%.2lf\nErro:%lf\n\n", i+1 , result, valor_esperado, erro[i]);
 
-	for (int i=0; i<50; int++){
-		tipo_misturado[i][0] = random_number(0,1);
-
-		if (tipo_misturado[i][0] == 0){ // verificando se ja possui 25 imagens de asfalto
-			if (qnt_asfalto == 25){
-				for (; i<50; i++) {
-					tipo_misturado[i][0] = 1;
-
-					while (1) { // sorteando o numero da posição
-						int sorteio = random_number(0,24);
-						int tem_numero = 0;
-						for (int j=0; j<i; j++) {
-							if (tipo_misturado[j][0] == 1 && tipo_misturado[j][1] == sorteio){
-								tem_numero = 1;
-								break;
-							}
-						}
-						if (tem_numero == 1){
-							break;
-						}
-						else {
-							tipo_misturado[i][1] == sorteio;
-
-							while (1) {
-								int sorteio = random_number(0,24);
-								int tem_numero = 0;
-								for (int j=0; j<i; j++) {
-									if (tipo_misturado[j][0] == 0 && tipo_misturado[j][1] == sorteio){
-										tem_numero = 1;
-										break;
-									}
-								}
-								if (tem_numero == 1){
-									break;
-								}
-								else
-									tipo_misturado[i][1] == sorteio;
-							}
-						}
-					}
-				}
-			}
-			else
-				qnt_asfalto ++;
 		}
-		else { // verificando se ja possui 25 imagens de grama
-			if (qnt_grama == 25){
-				for (; i<50; i++) {
-					tipo_misturado[i][0] = 0;
+		erro_medio=0;
+		for(int i=0; i<50; i++)
+			erro_medio+=erro[i];
+		erro_medio/=50;
+		if(erro_medio<0)
+			erro_medio*=-1;
+		printf("Módulo da média de erro:%lf\n", erro_medio);
 
-					while (1) {
-						int sorteio = random_number(0,24);
-						int tem_numero = 0;
-						for (int j=0; j<i; j++) {
-							if (tipo_misturado[j][0] == 0 && tipo_misturado[j][1] == sorteio){
-								tem_numero = 1;
-								break;
-							}
-						}
-						if (tem_numero == 1){
-							break;
-						}
-						else
-							tipo_misturado[i][1] == sorteio;
-					}
-				}
-			}
-			else {
-				qnt_grama ++;
-				while (1) {
-					int sorteio = random_number(0,24);
-					int tem_numero = 0;
-					for (int j=0; j<i; j++) {
-						if (tipo_misturado[j][0] == 1 && tipo_misturado[j][1] == sorteio){
-							tem_numero = 1;
-							break;
-						}
-					}
-					if (tem_numero == 1){
-						break;
-					}
-					else
-						tipo_misturado[i][1] == sorteio;
-				}
-			}
-		}
-	}
-
-
-	double result;
-	for(int i=0; i<1; i++){
-		//Procedimento com grama
-		transferencia(camada_oculta, grama[i]);
-		ativacao(camada_saida, camada_oculta);
-		result = camada_saida->inicio->valor;
-		erro[i]=1-result;
-		backprogramation(camada_saida, camada_oculta, erro[i]);
-		printf("Procedimento %d\nValor Obitido para grama:%.2lf\tEsperado:1.00\nErro:%lf\n\n", i+1 , result, erro[i]);
-
-		//Procedimento com asfalto
-		transferencia(camada_oculta, asfalto[i]);
-		ativacao(camada_saida, camada_oculta);
-		result = camada_saida->inicio->valor;
-		erro[i+25]=0-result;
-		backprogramation(camada_saida, camada_oculta, erro[i+25]);
-		printf("Valor Obitido para asfalto:%.2lf\tEsperado:0.00\nErro:%lf\n\n", result, erro[i+25]);
-	}
-	double media=0;
-	for(int i=0; i<50; i++)
-		media+=erro[i];
-	media/=50;
-	printf("Média de erro:%lf\n", media);
-
-
-	float acerto = 0;
-	float falsa_aceitacao = 0;
-	float falsa_rejeicao = 0;
-	printf ("Taxa de acerto = %.2f %\n", acerto*100);
-	printf ("Taxa de falsa aceitacao = %.2f %\n", falsa_aceitacao*100);
-	printf ("Taxa de falsa rejeicao = %.2f %\n", falsa_rejeicao*100);
-
-
+		float acerto = 0;
+		float falsa_aceitacao = 0;
+		float falsa_rejeicao = 0;
+		printf ("Taxa de acerto = %.2f %%\n", acerto*100);
+		printf ("Taxa de falsa aceitacao = %.2f %%\n", falsa_aceitacao*100);
+		printf ("Taxa de falsa rejeicao = %.2f %%\n", falsa_rejeicao*100);
+		epoca++;
+	}while(epoca<1000 && erro_medio>0.2);
 
 	free_camada(camada_oculta);
 	free_camada(camada_saida);
 
 	for(int i=0; i<50; i++){
-		free_lista(grama[i]);
-		free_lista(asfalto[i]);
+		free_lista(imagem_treinamento[i]);
+		free_lista(imagem_teste[i]);
 	}
 
 	return 0;
@@ -361,7 +275,7 @@ void free_camada(Camada *camada){
 	}
 }
 
-Lista * ler_imagem(char *path, int linha){
+Lista * ler_imagem(char *path, int linha, int tipo){
 	FILE *arquivo;
 	arquivo = fopen(path, "r");
 	if (arquivo == NULL){
@@ -380,6 +294,7 @@ Lista * ler_imagem(char *path, int linha){
 		}
 	}
 	Lista * imagem = lista_vazia();
+	imagem->tipo=tipo;
 	double value;
 	while(fscanf(arquivo,"%lf%c", &value, &aux)!=EOF){
 		insere_elemento(imagem, value);
@@ -390,22 +305,28 @@ Lista * ler_imagem(char *path, int linha){
 	return imagem;
 }
 
-void generate_random_numbers(int * vector, int start, int end){
-	int memory[50];
+void generate_random_numbers(int * vector, int start, int tam){
+	int * memory;
+	memory = (int *) malloc(tam*sizeof(int));
+	if(memory==NULL){
+		printf("Alocação falhou");
+		exit(-1);
+	}
 	int i, j;
-	for(i=start, j=0; i<=end; i++, j++){
+	for(i=start, j=0; j<tam; i++, j++){
 		memory[j]=i;
 		//printf("%d ", memory[j]);
 	}
 	//printf("\n");
-	for(i=0; i<50; i++){
-		int num=random_number(0, (49-i));
+	for(i=0; i<tam; i++){
+		int num=random_number(0, (tam-1-i));
 		//printf("%d ", num);
 		vector[i]=memory[num];
-		for(int j=num; j<50-i; j++){
+		for(int j=num; j<tam-i; j++){
 			memory[j]=memory[j+1];
 		}
 	}
+	free(memory);
 	//printf("\n\n");
 }
 
@@ -471,7 +392,7 @@ void backprogramation(Camada * camada_saida, Camada * camada_oculta, double erro
 	for(;v_dx_atual != NULL ; v_dx_atual=v_dx_atual->proximo, w_atual=w_atual->proximo){
 		double gradiente = v_dx_atual->valor*(gradiente_saida*w_atual->valor);
 		insere_elemento(gradiente_u, gradiente); //Lista de gradientes da camada oculta
-		printf("Gradiente:%.2lf\n", gradiente);
+		//printf("Gradiente:%.2lf\n", gradiente);
 	}
 	
 	free_lista(gradiente_u);
