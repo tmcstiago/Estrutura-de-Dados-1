@@ -39,10 +39,12 @@ void free_camada(Camada *camada);
 
 Lista * ler_imagem(char *path, int linha);
 void generate_random_numbers(int * vector, int start, int end); // Gera 50 valores distintos dentro do intervalo e armazena em vector
-double tan_h(double value);
+double funcao_logistica(double value);
+double d_dx_funcao_logistica(double value);
 
-void transferencia(Camada *u, Lista *v);
+void transferencia(Camada *u, Lista *v); // Realiza a transferência de um vetor V para uma camada U e retorna vetor V da camada que recebe transferência
 void ativacao(Camada *saida, Camada *u);
+void backprogramation(Camada * camada_saida, Camada * camada_oculta, double erro);
 
 int main(int argc, char *argv[]){
 	//Comando usado para que números gerados dentro do programa sejam aleatórios 
@@ -89,19 +91,21 @@ int main(int argc, char *argv[]){
 		erro[i]=0;
 
 	double result;
-	for(int i=0; i<25; i++){
+	for(int i=0; i<1; i++){
 		//Procedimento com grama
 		transferencia(camada_oculta, grama[i]);
 		ativacao(camada_saida, camada_oculta);
 		result = camada_saida->inicio->valor;
 		erro[i]=1-result;
-		printf("Procedimento %d\nValor Obitido para grama:%.2lf\tEsperado:1.00\nErro:%lf\n", i+1 , result, erro[i]);
+		backprogramation(camada_saida, camada_oculta, erro[i]);
+		printf("Procedimento %d\nValor Obitido para grama:%.2lf\tEsperado:1.00\nErro:%lf\n\n", i+1 , result, erro[i]);
 
 		//Procedimento com asfalto
 		transferencia(camada_oculta, asfalto[i]);
 		ativacao(camada_saida, camada_oculta);
 		result = camada_saida->inicio->valor;
 		erro[i+25]=0-result;
+		backprogramation(camada_saida, camada_oculta, erro[i+25]);
 		printf("Valor Obitido para asfalto:%.2lf\tEsperado:0.00\nErro:%lf\n\n", result, erro[i+25]);
 	}
 	double media=0;
@@ -117,6 +121,7 @@ int main(int argc, char *argv[]){
 		free_lista(grama[i]);
 		free_lista(asfalto[i]);
 	}
+
 	return 0;
 }
 
@@ -300,46 +305,71 @@ void generate_random_numbers(int * vector, int start, int end){
 	//printf("\n\n");
 }
 
-double tan_h(double value){
-	return (pow(M_E, value) - pow(M_E, value*(-1)))/(pow(M_E, value) + pow(M_E, value*(-1)));
+double funcao_logistica(double value){
+	return 1/(1+pow(M_E, (-1)*value));
+}
+
+double d_dx_funcao_logistica(double value){
+	return (pow(M_E, value))/pow((1+pow(M_E, value)), 2);
 }
 
 void transferencia(Camada *u, Lista *v){
-
+	Lista * new_v = lista_vazia();
 	Neuronio * u_atual=u->inicio;
 	if(u_atual->w->tamanho != v->tamanho){
 		printf("Erro na função de transferencia\n");
 		exit(-1);
 	}
-
+	
 	for(int i=0 ; i<u->tamanho ; u_atual=u_atual->proximo, i++){
 		Elemento *w_atual=u_atual->w->inicio;
 		Elemento *v_atual=v->inicio;
-		u_atual->valor=0;
+		u_atual->valor=u->b;
 		for(int j=0; j<v->tamanho; j++, w_atual=w_atual->proximo, v_atual=v_atual->proximo){
-			if(i==0){
-				u_atual->valor=u->b;
-				break;
-			}
 			u_atual->valor+=(w_atual->valor)*(v_atual->valor);
+			u_atual->valor= funcao_logistica(u_atual->valor);
 		}
 	}
-
 }
 
-void ativacao(Camada *saida, Camada *u){
-	Neuronio * u_atual=u->inicio;
+void ativacao(Camada *saida, Camada *v){
+	Neuronio * v_atual=v->inicio;
 	Neuronio * n_saida = saida->inicio;
-	if(u->tamanho != n_saida->w->tamanho){
+	if(v->tamanho != n_saida->w->tamanho){
 		printf("Erro na função de ativacao\n");
 		exit(-1);
 	}
 	double n=saida->b;
 	Elemento * w_atual=n_saida->w->inicio;
-	for(int i=0 ; i<u->tamanho ; u_atual=u_atual->proximo, w_atual=w_atual->proximo, i++){
-		n += u_atual->valor*w_atual->valor;
+	for(int i=0 ; i<v->tamanho ; v_atual=v_atual->proximo, w_atual=w_atual->proximo, i++){
+		n += v_atual->valor*w_atual->valor;
 	}
 
-	n_saida->valor = 1/(1+pow(M_E, (-1)*n));
+	n_saida->valor = funcao_logistica(n);
 	
+}
+void backprogramation(Camada * camada_saida, Camada * camada_oculta, double erro){
+	//Cálculo das derivadas
+	double derivada_saida = d_dx_funcao_logistica(camada_saida->inicio->valor);
+	//printf("Derivada saída:%lf\n", derivada_saida);
+	Lista * v_dx = lista_vazia(); 
+	for(Neuronio *atual = camada_oculta->inicio; atual->proximo!=NULL; atual=atual->proximo){
+		insere_elemento(v_dx, d_dx_funcao_logistica(atual->valor)); //Derivadas da camada oculta
+		//printf("Derivada:%lf\n", d_dx_funcao_logistica(atual->valor));
+	}
+
+	//Cálculo dos gradientes
+	double gradiente_saida = derivada_saida*erro;
+	Lista * gradiente_u = lista_vazia();
+	Elemento * v_dx_atual=v_dx->inicio;
+	Elemento * w_atual=camada_saida->inicio->w->inicio;
+	printf("gradiente_saida:%.2lf\n", gradiente_saida);
+	for(;v_dx_atual != NULL ; v_dx_atual=v_dx_atual->proximo, w_atual=w_atual->proximo){
+		double gradiente = v_dx_atual->valor*(gradiente_saida*w_atual->valor);
+		insere_elemento(gradiente_u, gradiente); //Lista de gradientes da camada oculta
+		printf("Gradiente:%.2lf\n", gradiente);
+	}
+	
+	free_lista(gradiente_u);
+	free_lista(v_dx);
 }
