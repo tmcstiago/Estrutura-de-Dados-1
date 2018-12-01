@@ -8,13 +8,13 @@
 #define ASFALTO 0
 
 typedef struct neuronio {
-	double valor;
+	long double valor;
 	struct neuronio *proximo;
 	struct lista * w;
 } Neuronio;
 
 typedef struct camada {
-	double b;
+	long double b;
 	int tamanho;
 	struct neuronio *inicio;
 	struct neuronio *fim;
@@ -28,7 +28,7 @@ typedef struct lista {
 } Lista;
 
 typedef struct elemento {
-	double valor;
+	long double valor;
 	struct elemento *proximo;
 } Elemento;
 
@@ -42,8 +42,9 @@ void free_camada(Camada *camada);
 
 Lista * ler_imagem(char *path, int linha, int tipo);
 void generate_random_numbers(int * vector, int start, int tam); // Gera 50 valores distintos dentro do intervalo e armazena em vector
-double funcao_logistica(double value);
-double d_dx_funcao_logistica(double value);
+long double funcao_logistica(double value);
+long double d_dx_funcao_logistica(double value);
+void preenche_w(Lista *w, long double * vector);
 
 void transferencia(Camada *u, Lista *v); // Realiza a transferência de um vetor V para uma camada U e retorna vetor V da camada que recebe transferência
 void ativacao(Camada *saida, Camada *u);
@@ -77,19 +78,25 @@ int main(int argc, char *argv[]){
 
 	//Criação da camada oculta com valores aleatôrios, e w aleatôrio para cada neurônio
 	Camada * camada_oculta = camada_vazia();
+	long double w_camada_oculta[n_neuronios][imagem_treinamento[0]->tamanho]; //Valores iniciais de w
 	for(int i=0; i<n_neuronios; i++){
 		Lista * w = lista_vazia();
 		// Criação do vetor W aleatório
-		for(int i=0; i<imagem_treinamento[0]->tamanho; i++)
-			insere_elemento(w, rand());
-		insere_neuronio(camada_oculta, rand() , w);
+		for(int j=0; j<imagem_treinamento[0]->tamanho; j++){
+			w_camada_oculta[i][j]=random_number(-100, 100); //Sorteio do w
+			insere_elemento(w, 0);
+		}
+		insere_neuronio(camada_oculta, 0 , w);
 	}
 	
 	// Criação da camada de saída com um único neurônio de valor 0
 	Camada * camada_saida = camada_vazia();
 	Lista * w = lista_vazia();
-	for(int i=0; i<camada_oculta->tamanho; i++)
-		insere_elemento(w, rand());
+	long double w_camada_saida[camada_oculta->tamanho];
+	for(int i=0; i<camada_oculta->tamanho; i++){
+		insere_elemento(w, 0);
+		w_camada_saida[i]=random_number(-100, 100); //Sorteio do w
+	}
 	insere_neuronio(camada_saida, 0, w);
 	
 	//Época com 25 imagens de cada tipo
@@ -98,12 +105,15 @@ int main(int argc, char *argv[]){
 	do{
 		printf("Época: %d\n", epoca+1);
 		double erro[50];
-		for(int i=0; i<50; i++)
-			erro[i]=0;
-
 		double result;
-		int valor_imagem[50]; // Armazena valores aleatórios para serem escolhidos no treinamento
-		generate_random_numbers(valor_imagem, 0, 50);
+		int valor_imagem[50];
+		//Reseta valores de w para serem iguais ao início do programa
+		preenche_w(camada_saida->inicio->w, w_camada_saida);		
+		Neuronio * n_atual=camada_oculta->inicio;
+		for(int i=0; n_atual!=NULL; n_atual=n_atual->proximo, i++){
+			preenche_w(n_atual->w, w_camada_oculta[i]);
+		}
+		generate_random_numbers(valor_imagem, 0, 50); // Embaralha imagens a ser escolhidas
 		for(int i=0; i<50; i++){
 			//Procedimento com grama
 			transferencia(camada_oculta, imagem_treinamento[valor_imagem[i]]);
@@ -112,7 +122,7 @@ int main(int argc, char *argv[]){
 			double valor_esperado = imagem_treinamento[valor_imagem[i]]->tipo;
 			erro[i]=valor_esperado-result;
 			backprogramation(camada_saida, camada_oculta, erro[i]);
-			printf("Procedimento %d\nValor obitido:%.2lf\tValor esperado:%.2lf\nErro:%lf\n\n", i+1 , result, valor_esperado, erro[i]);
+			//printf("Procedimento %d\nValor obitido:%.2lf\tValor esperado:%.2lf\nErro:%lf\n\n", i+1 , result, valor_esperado, erro[i]);
 
 		}
 		erro_medio=0;
@@ -123,15 +133,15 @@ int main(int argc, char *argv[]){
 			erro_medio*=-1;
 		printf("Módulo da média de erro:%lf\n", erro_medio);
 
-		float acerto = 0;
-		float falsa_aceitacao = 0;
-		float falsa_rejeicao = 0;
-		printf ("Taxa de acerto = %.2f %%\n", acerto*100);
-		printf ("Taxa de falsa aceitacao = %.2f %%\n", falsa_aceitacao*100);
-		printf ("Taxa de falsa rejeicao = %.2f %%\n", falsa_rejeicao*100);
 		epoca++;
+		//break;
 	}while(epoca<1000 && erro_medio>0.2);
-
+	float acerto = 0;
+	float falsa_aceitacao = 0;
+	float falsa_rejeicao = 0;
+	printf ("Taxa de acerto = %.2f %%\n", acerto*100);
+	printf ("Taxa de falsa aceitacao = %.2f %%\n", falsa_aceitacao*100);
+	printf ("Taxa de falsa rejeicao = %.2f %%\n", falsa_rejeicao*100);
 	free_camada(camada_oculta);
 	free_camada(camada_saida);
 
@@ -330,12 +340,19 @@ void generate_random_numbers(int * vector, int start, int tam){
 	//printf("\n\n");
 }
 
-double funcao_logistica(double value){
+long double funcao_logistica(double value){
 	return 1/(1+pow(M_E, (-1)*value));
 }
 
-double d_dx_funcao_logistica(double value){
+long double d_dx_funcao_logistica(double value){
 	return (pow(M_E, value))/pow((1+pow(M_E, value)), 2);
+}
+
+void preenche_w(Lista *w, long double * vector){
+	Elemento * atual=w->inicio;
+	for(int i=0; atual!=NULL; atual=atual->proximo, i++){
+		atual->valor=vector[i];
+	}
 }
 
 void transferencia(Camada *u, Lista *v){
@@ -352,8 +369,9 @@ void transferencia(Camada *u, Lista *v){
 		u_atual->valor=u->b;
 		for(int j=0; j<v->tamanho; j++, w_atual=w_atual->proximo, v_atual=v_atual->proximo){
 			u_atual->valor+=(w_atual->valor)*(v_atual->valor);
-			u_atual->valor= funcao_logistica(u_atual->valor);
 		}
+		//printf("u_atual:%Lf\t f(u_atual):%Lf\n", u_atual->valor, funcao_logistica(u_atual->valor));
+		u_atual->valor= funcao_logistica(u_atual->valor);
 	}
 }
 
@@ -373,6 +391,7 @@ void ativacao(Camada *saida, Camada *v){
 	n_saida->valor = funcao_logistica(n);
 	
 }
+
 void backprogramation(Camada * camada_saida, Camada * camada_oculta, double erro){
 	//Cálculo das derivadas
 	double derivada_saida = d_dx_funcao_logistica(camada_saida->inicio->valor);
@@ -388,13 +407,38 @@ void backprogramation(Camada * camada_saida, Camada * camada_oculta, double erro
 	Lista * gradiente_u = lista_vazia();
 	Elemento * v_dx_atual=v_dx->inicio;
 	Elemento * w_atual=camada_saida->inicio->w->inicio;
-	printf("gradiente_saida:%.2lf\n", gradiente_saida);
+	//printf("gradiente_saida:%.2lf\n", gradiente_saida);
 	for(;v_dx_atual != NULL ; v_dx_atual=v_dx_atual->proximo, w_atual=w_atual->proximo){
 		double gradiente = v_dx_atual->valor*(gradiente_saida*w_atual->valor);
 		insere_elemento(gradiente_u, gradiente); //Lista de gradientes da camada oculta
 		//printf("Gradiente:%.2lf\n", gradiente);
 	}
-	
+
+	//Atualização dos b
+	double b_saida, b_camada_oculta; // Delta b saida e delta b camada oculta
+	b_saida = 2*(0.1)*gradiente_saida*camada_saida->inicio->valor;
+	b_camada_oculta = 2*(0.1)*(gradiente_u->inicio->valor)*(camada_oculta->inicio->valor); //Primeiro valor da lista corresponde ao gradiente de b;
+	camada_saida->b+=b_saida;
+	camada_oculta->b+=b_camada_oculta;
+
+	//Atualização dos w da camada de saida
+	for(w_atual=camada_saida->inicio->w->inicio ; w_atual != NULL ;  w_atual=w_atual->proximo){
+		long double delta_w = 2*(0.1)*gradiente_saida*camada_saida->inicio->valor;
+		w_atual->valor+=delta_w;
+		//printf("w_atual->valor:%Lf\tDelta_w:%Lf\n", w_atual->valor, delta_w);
+	}
+
+	//Atualização dos w da camada oculta
+	Neuronio * v_atual=camada_oculta->inicio;
+	Elemento * gradiente_atual=gradiente_u->inicio;
+	for(; v_atual!=NULL ; v_atual=v_atual->proximo){
+		for(w_atual=v_atual->w->inicio ; w_atual != NULL ;  w_atual=w_atual->proximo){
+			long double delta_w = 2*(0.1)*gradiente_atual->valor*v_atual->valor;
+			w_atual->valor+=delta_w;
+			//printf("w_atual->valor:%Lf\tDelta_w:%Lf\n", w_atual->valor, delta_w);
+		}
+	}
+
 	free_lista(gradiente_u);
 	free_lista(v_dx);
 }
