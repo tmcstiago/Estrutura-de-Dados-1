@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
 		printf("É preciso passar o número de neurônios\nex.: $ %s 10\n", argv[0]);
 		exit(-1);
 	}
-	int n_neuronios = atoi(argv[1]); //Pega o primeiro argumento ao rodar o código
+	int n_neuronios = atoi(argv[1]) + 1; //Pega o primeiro argumento ao rodar o código
 
 	//Criação dos vetores para sortear as imagens
 	int n_grama[50],  n_asfalto[50];
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]){
 		}
 		generate_random_numbers(valor_imagem, 0, 50); // Embaralha imagens a ser escolhidas
 		for(int i=0; i<50; i++){
-			//Procedimento com grama
+			//Procedimento
 			transferencia(camada_oculta, imagem_treinamento[valor_imagem[i]]);
 			ativacao(camada_saida, camada_oculta);
 			result = camada_saida->inicio->valor;
@@ -127,21 +127,52 @@ int main(int argc, char *argv[]){
 		}
 		erro_medio=0;
 		for(int i=0; i<50; i++)
-			erro_medio+=erro[i];
+			erro_medio+=pow(erro[i], 2);
 		erro_medio/=50;
-		if(erro_medio<0)
-			erro_medio*=-1;
-		printf("Módulo da média de erro:%lf\n", erro_medio);
+		printf("Erro médio quadratico:%lf\n", erro_medio);
 
 		epoca++;
 		//break;
-	}while(epoca<1000 && erro_medio>0.2);
+	}while(epoca<1000 && erro_medio>=0.2);
+	if(epoca==1000){
+		printf("\n1000 Épocas realizadas com erro maior que 0.2\n");
+		printf("A última época foi mantida com erro quadratico médio de %lf\n\n", erro_medio);
+		//return 0;		
+	}
+
 	float acerto = 0;
 	float falsa_aceitacao = 0;
 	float falsa_rejeicao = 0;
-	printf ("Taxa de acerto = %.2f %%\n", acerto*100);
-	printf ("Taxa de falsa aceitacao = %.2f %%\n", falsa_aceitacao*100);
-	printf ("Taxa de falsa rejeicao = %.2f %%\n", falsa_rejeicao*100);
+	for(int i=0; i<50; i++){
+		transferencia(camada_oculta, imagem_teste[i]);
+		ativacao(camada_saida, camada_oculta);
+		double result = camada_saida->inicio->valor;
+		//Reconhecimento da imagem pelo programa
+		int tipo_reconhecido;
+		if(result<=0.5){
+			tipo_reconhecido=ASFALTO;
+		}
+		else{
+			tipo_reconhecido=GRAMA;
+		}
+		//Tipo real da imagem 
+		int tipo_real = imagem_teste[i]->tipo;
+		if(tipo_reconhecido == tipo_real){
+			acerto++;
+			//printf("O programa acertou o tipo de imagem\n");
+		}
+		else if(tipo_reconhecido == GRAMA && tipo_real == ASFALTO){
+			falsa_aceitacao++;
+			//printf("O programa classificou asfalto como grama\n");
+		}
+		else if(tipo_reconhecido == ASFALTO && tipo_real == GRAMA){
+			falsa_rejeicao++;
+			//printf("O programa classificou grama como asfalto\n");
+		}
+	}
+	printf ("Taxa de acerto = %.2f %%\n", (acerto/50)*100);
+	printf ("Taxa de falsa aceitacao = %.2f %%\n", (falsa_aceitacao/50)*100);
+	printf ("Taxa de falsa rejeicao = %.2f %%\n", (falsa_rejeicao/50)*100);
 	free_camada(camada_oculta);
 	free_camada(camada_saida);
 
@@ -235,12 +266,12 @@ void insere_elemento(Lista * lista, double valor){
 void free_lista(Lista *lista){
 	Elemento * atual=lista->inicio;
 	if(lista->tamanho == 0){
-		printf("Lista tamanho 0\n");
+		//printf("Lista tamanho 0\n");
 		free(lista);
 		return;
 	}
 	else if(lista->tamanho == 1){
-		printf("Lista tamanho 1\n");
+		//printf("Lista tamanho 1\n");
 		free(atual);
 		free(lista);
 		return;
